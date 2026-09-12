@@ -1,0 +1,349 @@
+:root {
+  color-scheme: light;
+  --paper: #f4f0e6;
+  --ink: #1a1a1a;
+  --muted: #5c5346;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  min-height: 100%;
+  background: var(--paper);
+}
+
+body {
+  overflow-x: hidden;
+  cursor: default;
+}
+
+.scroll-track {
+  position: relative;
+  width: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.scene-canvas {
+  touch-action: none;
+}
+
+.hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* Ink wash / paper fade during section teleports */
+.hud-fade {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center, rgba(244, 240, 230, 0.2) 0%, rgba(244, 240, 230, 0.95) 70%),
+    var(--paper);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  pointer-events: none;
+  z-index: 50;
+}
+.hud-fade.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hud-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem 1.25rem;
+  pointer-events: none;
+}
+
+/* Sketch plaque — thick irregular ink border */
+.ink-plaque {
+  background: #fffef8;
+  border: 2.5px solid var(--ink);
+  box-shadow:
+    3px 3px 0 rgba(0, 0, 0, 0.12),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+.ink-plaque::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 1.5px solid rgba(26, 26, 26, 0.35);
+  clip-path: polygon(
+    0% 6%, 4% 0%, 12% 5%, 22% 1%, 35% 7%, 50% 0%, 65% 6%, 78% 1%, 90% 5%, 100% 0%,
+    100% 94%, 96% 100%, 85% 95%, 72% 100%, 58% 94%, 45% 100%, 30% 95%, 15% 100%, 0% 94%
+  );
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.hud-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem 0.9rem 0.55rem;
+  clip-path: polygon(1% 4%, 8% 0%, 100% 3%, 98% 100%, 0% 96%);
+  pointer-events: auto;
+}
+
+.hud-name {
+  font-family: 'Caveat', cursive;
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.hud-tag {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+}
+
+.hud-icons {
+  display: flex;
+  gap: 0.55rem;
+  pointer-events: auto;
+}
+
+.paper-btn,
+.ink-btn {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  background: #fffef8;
+  border: 2.5px solid var(--ink);
+  clip-path: polygon(5% 0, 100% 7%, 95% 100%, 0 93%);
+  text-decoration: none;
+  color: var(--ink);
+  font-size: 1.15rem;
+  cursor: pointer;
+  box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.14);
+  position: relative;
+}
+
+.ink-btn::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px dashed rgba(26, 26, 26, 0.25);
+  pointer-events: none;
+}
+
+.paper-btn:hover,
+.ink-btn:hover {
+  transform: translateY(-1px);
+  background: #fff;
+}
+
+.hud-menu {
+  position: absolute;
+  top: 4.6rem;
+  right: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.95rem 1.1rem;
+  pointer-events: auto;
+  min-width: 170px;
+  clip-path: polygon(2% 0, 100% 3%, 98% 100%, 0 97%);
+}
+
+.paper-panel {
+  background: #fffef8;
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.hud-menu button,
+.hud-menu a {
+  background: none;
+  border: none;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  padding: 0.4rem 0.25rem;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.hud-menu button:hover,
+.hud-menu a:hover {
+  text-decoration: underline;
+  text-decoration-style: wavy;
+}
+
+/* Torn-paper EXPLORER / WANDERER banner — ITOM-like */
+.hud-banner,
+.torn-banner {
+  position: absolute;
+  left: 50%;
+  bottom: 1.6rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1.4rem 0.95rem;
+  min-width: min(440px, 92vw);
+  pointer-events: none;
+  background: #fffef8;
+  border: 2.5px solid var(--ink);
+  box-shadow:
+    0 5px 18px rgba(0, 0, 0, 0.1),
+    2px 2px 0 rgba(0, 0, 0, 0.06);
+  clip-path: polygon(
+    0% 10%, 2% 2%, 6% 8%, 11% 0%, 17% 9%, 24% 1%, 32% 10%, 40% 0%,
+    48% 8%, 56% 1%, 64% 9%, 72% 0%, 80% 8%, 88% 1%, 94% 9%, 100% 3%,
+    100% 90%, 97% 100%, 90% 93%, 82% 100%, 74% 92%, 66% 100%,
+    58% 93%, 50% 100%, 42% 92%, 34% 100%, 26% 93%, 18% 100%, 10% 92%, 0% 100%
+  );
+}
+
+.torn-banner::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1.5px solid rgba(26, 26, 26, 0.45);
+  clip-path: inherit;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.banner-check {
+  font-size: 1rem;
+  border: 2.5px solid var(--ink);
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: #fff;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.banner-title {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+}
+
+.banner-text {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 0.1rem;
+}
+
+.hud-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.hud-progress-bar {
+  height: 100%;
+  background: var(--ink);
+  transition: width 0.05s linear;
+}
+
+.project-tooltip {
+  background: #fffef8;
+  border: 2.5px solid #111;
+  padding: 0.65rem 0.8rem;
+  clip-path: polygon(2% 0, 100% 3%, 98% 100%, 0 97%);
+  font-family: 'Space Grotesk', sans-serif;
+  color: #111;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.12);
+}
+
+.project-tooltip strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.3rem;
+}
+
+.project-tooltip p {
+  margin: 0 0 0.4rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: #444;
+}
+
+.project-tooltip span {
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.contact-banner {
+  text-align: center;
+  background: #fffef8;
+  border: 2.5px solid #111;
+  padding: 0.85rem 1.35rem;
+  clip-path: polygon(2% 0, 100% 4%, 98% 100%, 0 96%);
+  font-family: 'Space Grotesk', sans-serif;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.contact-banner h2 {
+  margin: 0 0 0.35rem;
+  font-family: 'Caveat', cursive;
+  font-size: 2rem;
+}
+
+.contact-banner p {
+  margin: 0.15rem 0;
+  font-size: 0.8rem;
+  color: #444;
+}
+
+.contact-sign {
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  background: #f4e4c4;
+  border: 2.5px solid #111;
+  padding: 0.4rem 0.5rem;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.contact-sign.hot {
+  background: #ffe08a;
+}
+
+@media (max-width: 768px) {
+  .hud-brand {
+    max-width: 55vw;
+  }
+  .hud-name {
+    font-size: 1.25rem;
+  }
+  .hud-banner,
+  .torn-banner {
+    bottom: 1rem;
+    padding: 0.65rem 1rem 0.75rem;
+  }
+  .banner-title {
+    font-size: 0.92rem;
+  }
+  .paper-btn,
+  .ink-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
