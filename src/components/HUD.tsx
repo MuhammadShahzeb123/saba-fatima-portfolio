@@ -1,19 +1,24 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { galleryProjects, portfolio, TAGLINE } from '../data/content'
 import { SECTIONS, bannerForProgress } from '../data/sections'
+import { getScrollMax } from '../hooks/useScrollProgress'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 export function HUD({ progress }: { progress: number }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [soundOn, setSoundOn] = useState(false)
   const [fade, setFade] = useState(0)
   const [jumping, setJumping] = useState(false)
+  const mobile = useIsMobile()
 
   const banner = useMemo(() => {
     const b = bannerForProgress(progress)
     let text = ''
     switch (b.textKey) {
       case 'enter':
-        text = 'Scroll or click to enter the corridor'
+        text = mobile
+          ? 'Tap a door for GitHub · Scroll to enter'
+          : 'Tap a project door · Scroll to enter the corridor'
         break
       case 'hub':
         text = 'Scroll to explore the corridor'
@@ -37,25 +42,26 @@ export function HUD({ progress }: { progress: number }) {
         text = ''
     }
     return { title: b.title, text }
-  }, [progress])
+  }, [progress, mobile])
 
-  const jump = useCallback((at: number) => {
-    if (jumping) return
-    setMenuOpen(false)
-    setJumping(true)
-    // Fade to paper/ink overlay, teleport scroll, fade back — no cream flash
-    setFade(1)
-    window.setTimeout(() => {
-      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
-      window.scrollTo({ top: at * max, behavior: 'auto' })
+  const jump = useCallback(
+    (at: number) => {
+      if (jumping) return
+      setMenuOpen(false)
+      setJumping(true)
+      setFade(1)
       window.setTimeout(() => {
-        setFade(0)
-        setJumping(false)
-      }, 80)
-    }, 280)
-  }, [jumping])
+        const max = getScrollMax()
+        window.scrollTo({ top: at * max, behavior: 'auto' })
+        window.setTimeout(() => {
+          setFade(0)
+          setJumping(false)
+        }, 80)
+      }, 280)
+    },
+    [jumping],
+  )
 
-  // Allow Escape to close menu
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMenuOpen(false)
@@ -64,36 +70,37 @@ export function HUD({ progress }: { progress: number }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  const showEnter = progress < 0.06
+
   return (
-    <div className="hud">
-      <div
-        className={`hud-fade ${fade > 0 ? 'on' : ''}`}
-        aria-hidden
-        style={{ opacity: fade }}
-      />
+    <div className={`hud ${mobile ? 'hud-mobile' : ''}`}>
+      <div className={`hud-fade ${fade > 0 ? 'on' : ''}`} aria-hidden style={{ opacity: fade }} />
 
       <div className="hud-top">
         <div className="hud-brand ink-plaque">
           <span className="hud-name">Saba Fatima</span>
-          <span className="hud-tag">{TAGLINE}</span>
+          {!mobile && <span className="hud-tag">{TAGLINE}</span>}
         </div>
         <div className="hud-icons">
           <button
             type="button"
             className="paper-btn ink-btn"
             aria-label="Menu"
+            aria-expanded={menuOpen}
             onClick={() => setMenuOpen((v) => !v)}
           >
             ☰
           </button>
-          <button
-            type="button"
-            className="paper-btn ink-btn"
-            aria-label="Sound"
-            onClick={() => setSoundOn((v) => !v)}
-          >
-            {soundOn ? '🔊' : '🔇'}
-          </button>
+          {!mobile && (
+            <button
+              type="button"
+              className="paper-btn ink-btn"
+              aria-label="Sound"
+              onClick={() => setSoundOn((v) => !v)}
+            >
+              {soundOn ? '🔊' : '🔇'}
+            </button>
+          )}
           <a
             className="paper-btn ink-btn"
             href={portfolio.contact.github}
@@ -120,9 +127,15 @@ export function HUD({ progress }: { progress: number }) {
         </nav>
       )}
 
+      {showEnter && (
+        <button type="button" className="enter-corridor-btn" onClick={() => jump(0.14)}>
+          Enter corridor · Scroll ↓
+        </button>
+      )}
+
       <div className="hud-banner torn-banner">
         <div className="banner-check">▦</div>
-        <div>
+        <div className="banner-copy">
           <div className="banner-title">{banner.title}</div>
           <div className="banner-text">{banner.text}</div>
         </div>

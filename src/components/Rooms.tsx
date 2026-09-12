@@ -39,7 +39,7 @@ export function AboutRoom() {
       </mesh>
       <Html position={[-4.8, 0.2, 0]} transform rotation={[0, Math.PI / 2, 0]} distanceFactor={4}>
         <img
-          src="/avatar.jpg"
+          src={`${import.meta.env.BASE_URL}avatar.jpg`}
           alt={profile.name}
           style={{
             width: 120,

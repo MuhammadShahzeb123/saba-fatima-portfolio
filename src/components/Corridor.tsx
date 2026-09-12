@@ -10,6 +10,7 @@ import {
   cached,
 } from '../utils/textures'
 import { NAME, TAGLINE } from '../data/content'
+import { getIsMobile } from '../hooks/useIsMobile'
 
 const LENGTH = 110
 const WIDTH = 5.5
@@ -22,27 +23,36 @@ const POSTERS: Array<{
   z: number
   y: number
 }> = [
-  { title: 'AI notes', doodle: 'bot', side: -1, z: -5, y: 2.4 },
-  { title: 'CV lab', doodle: 'grid', side: 1, z: -7, y: 2.1 },
-  { title: '</>', doodle: 'code', side: -1, z: -11, y: 2.6 },
-  { title: 'ship it', doodle: 'star', side: 1, z: -13, y: 2.3 },
-  { title: 'Flutter', doodle: 'heart', side: -1, z: -22, y: 2.5 },
-  { title: 'Python', doodle: 'code', side: 1, z: -28, y: 2.2 },
-  { title: 'ML', doodle: 'bot', side: -1, z: -36, y: 2.55 },
-  { title: 'build', doodle: 'star', side: 1, z: -42, y: 2.15 },
-  { title: 'learn', doodle: 'grid', side: -1, z: -50, y: 2.4 },
-  { title: 'create', doodle: 'heart', side: 1, z: -62, y: 2.3 },
-  { title: 'deploy', doodle: 'code', side: -1, z: -72, y: 2.5 },
-  { title: 'hello', doodle: 'star', side: 1, z: -82, y: 2.2 },
+  { title: 'AI notes', doodle: 'bot', side: -1, z: -4, y: 2.45 },
+  { title: 'CV lab', doodle: 'grid', side: 1, z: -5.5, y: 2.05 },
+  { title: '</>', doodle: 'code', side: -1, z: -7, y: 2.65 },
+  { title: 'ship it', doodle: 'star', side: 1, z: -9, y: 2.25 },
+  { title: 'Flutter', doodle: 'heart', side: -1, z: -11.5, y: 2.15 },
+  { title: 'Python', doodle: 'code', side: 1, z: -14, y: 2.55 },
+  { title: 'ML', doodle: 'bot', side: -1, z: -22, y: 2.5 },
+  { title: 'build', doodle: 'star', side: 1, z: -24, y: 2.1 },
+  { title: 'OpenCV', doodle: 'grid', side: -1, z: -27, y: 2.6 },
+  { title: 'Dart', doodle: 'code', side: 1, z: -30, y: 2.2 },
+  { title: 'learn', doodle: 'grid', side: -1, z: -36, y: 2.4 },
+  { title: 'create', doodle: 'heart', side: 1, z: -39, y: 2.3 },
+  { title: 'TF', doodle: 'bot', side: -1, z: -44, y: 2.55 },
+  { title: 'deploy', doodle: 'code', side: 1, z: -48, y: 2.15 },
+  { title: 'notes', doodle: 'star', side: -1, z: -52, y: 2.35 },
+  { title: 'hello', doodle: 'heart', side: 1, z: -62, y: 2.25 },
+  { title: 'ship', doodle: 'star', side: -1, z: -72, y: 2.5 },
+  { title: 'code', doodle: 'code', side: 1, z: -82, y: 2.2 },
 ]
 
 export function Corridor() {
+  const mobile = useMemo(() => getIsMobile(), [])
   const plank = useMemo(() => cached('plank', () => plankTexture()), [])
   const wall = useMemo(() => cached('wall', () => paperWallTexture()), [])
   const wordmark = useMemo(
     () => cached('wordmark', () => wordmarkTexture(NAME.toUpperCase().split(' ')[0], TAGLINE)),
     [],
   )
+
+  const posters = mobile ? POSTERS.filter((_, i) => i % 2 === 0) : POSTERS
 
   return (
     <group>
@@ -70,23 +80,26 @@ export function Corridor() {
         <meshBasicMaterial map={wall} />
       </mesh>
 
-      {/* Hub wordmark — LOD fade when camera approaches */}
       <LodWordmark map={wordmark} />
 
-      {/* Floating sketch props */}
+      {/* Floating sketch props with subtle parallax */}
       <FloatProp position={[-1.6, 2.8, -6]} />
       <FloatProp position={[1.8, 3.0, -10]} kind="plane" />
       <FloatProp position={[-1.2, 2.5, -12]} kind="mug" />
       <FloatProp position={[1.4, 2.7, -20]} kind="pencil" />
       <FloatProp position={[-1.5, 2.9, -32]} kind="plane" />
       <FloatProp position={[1.6, 2.6, -48]} kind="ball" />
+      {!mobile && (
+        <>
+          <FloatProp position={[-1.3, 3.1, -55]} kind="mug" />
+          <FloatProp position={[1.5, 2.85, -70]} kind="pencil" />
+        </>
+      )}
 
-      {/* Wall posters / doodles for density */}
-      {POSTERS.map((p) => (
+      {posters.map((p) => (
         <WallPoster key={`${p.title}-${p.z}`} {...p} />
       ))}
 
-      {/* Door labels — larger for readability */}
       <DoorLabel text="THE GALLERY" position={[-2.35, 3.35, -18]} />
       <DoorLabel text="ABOUT" position={[2.35, 3.35, -58]} />
       <DoorLabel text="EXPERIENCE" position={[-2.35, 3.35, -68]} />
@@ -104,17 +117,18 @@ function LodWordmark({ map }: { map: THREE.Texture }) {
     if (!ref.current) return
     const z = ref.current.position.z
     const dist = Math.abs(camera.position.z - z)
-    // Fade & shrink when camera gets close to avoid clipping through wordmark
-    const fade = THREE.MathUtils.clamp((dist - 1.2) / 3.5, 0, 1)
+    const fade = THREE.MathUtils.clamp((dist - 1.4) / 3.8, 0, 1)
     const mat = ref.current.material as THREE.MeshBasicMaterial
     mat.opacity = fade
-    const s = 0.75 + fade * 0.25
+    const s = 0.72 + fade * 0.28
     ref.current.scale.set(s, s, 1)
+    // nudge up slightly when close to reduce clipping through camera
+    ref.current.position.y = 2.35 + (1 - fade) * 0.35
   })
 
   return (
     <mesh ref={ref} position={[0, 2.35, -8.2]}>
-      <planeGeometry args={[5.2, 2.5]} />
+      <planeGeometry args={[5.4, 2.6]} />
       <meshBasicMaterial map={map} transparent depthWrite={false} />
     </mesh>
   )
@@ -134,28 +148,35 @@ function WallPoster({
   y: number
 }) {
   const tex = useMemo(
-    () => cached(`poster-${title}-${z}`, () => posterTexture(title, doodle)),
+    () => cached(`poster-${title}-${z}`, () => posterTexture(title, doodle, 448, 576)),
     [title, doodle, z],
   )
   const x = side * (WIDTH / 2 - 0.04)
   const rotY = side > 0 ? -Math.PI / 2 : Math.PI / 2
   return (
-    <mesh position={[x, y, z]} rotation={[0, rotY, 0]}>
-      <planeGeometry args={[0.85, 1.15]} />
-      <meshBasicMaterial map={tex} />
-    </mesh>
+    <group position={[x, y, z]} rotation={[0, rotY, 0]}>
+      {/* slight depth backing */}
+      <mesh position={[0, 0, -0.02]}>
+        <boxGeometry args={[0.92, 1.22, 0.04]} />
+        <meshBasicMaterial color="#e8e2d6" />
+      </mesh>
+      <mesh>
+        <planeGeometry args={[0.88, 1.18]} />
+        <meshBasicMaterial map={tex} />
+      </mesh>
+    </group>
   )
 }
 
 function DoorLabel({ text, position }: { text: string; position: [number, number, number] }) {
-  const tex = useMemo(() => cached(`label-${text}`, () => woodSignTexture(text, 640, 160)), [text])
+  const tex = useMemo(() => cached(`label-${text}`, () => woodSignTexture(text, 768, 200)), [text])
   const facing = position[0] < 0 ? 1 : position[0] > 0 ? -1 : 0
   return (
     <mesh
       position={position}
       rotation={[0, facing === 0 ? 0 : facing * (Math.PI / 2) * 0.05, 0]}
     >
-      <planeGeometry args={[2.4, 0.6]} />
+      <planeGeometry args={[2.5, 0.62]} />
       <meshBasicMaterial map={tex} transparent />
     </mesh>
   )
@@ -168,36 +189,47 @@ function FloatProp({
   position: [number, number, number]
   kind?: 'ball' | 'plane' | 'mug' | 'pencil'
 }) {
-  if (kind === 'plane') {
-    return (
-      <mesh position={position} rotation={[0.4, 0.5, 0.2]}>
-        <planeGeometry args={[0.45, 0.35]} />
-        <meshBasicMaterial color="#f5f0e6" wireframe />
-      </mesh>
-    )
-  }
-  if (kind === 'mug') {
-    return (
-      <group position={position}>
+  const ref = useRef<THREE.Group>(null)
+  const base = useMemo(() => new THREE.Vector3(...position), [position])
+  const { camera } = useThree()
+
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    const t = clock.elapsedTime
+    // bob
+    const bob = Math.sin(t * 0.9 + base.z * 0.1) * 0.06
+    // subtle parallax vs camera x
+    const parallax = (camera.position.x - 0) * 0.15
+    ref.current.position.set(base.x + parallax, base.y + bob, base.z)
+    ref.current.rotation.y = Math.sin(t * 0.4 + base.z) * 0.15
+  })
+
+  return (
+    <group ref={ref} position={position}>
+      {kind === 'plane' && (
+        <mesh rotation={[0.4, 0.5, 0.2]}>
+          <planeGeometry args={[0.45, 0.35]} />
+          <meshBasicMaterial color="#f5f0e6" wireframe />
+        </mesh>
+      )}
+      {kind === 'mug' && (
         <mesh>
           <cylinderGeometry args={[0.12, 0.1, 0.22, 8]} />
           <meshBasicMaterial color="#eee" wireframe />
         </mesh>
-      </group>
-    )
-  }
-  if (kind === 'pencil') {
-    return (
-      <mesh position={position} rotation={[0.5, 0.2, 1.2]}>
-        <cylinderGeometry args={[0.03, 0.03, 0.55, 5]} />
-        <meshBasicMaterial color="#f5d76e" wireframe />
-      </mesh>
-    )
-  }
-  return (
-    <mesh position={position}>
-      <icosahedronGeometry args={[0.15, 0]} />
-      <meshBasicMaterial color="#ddd" wireframe />
-    </mesh>
+      )}
+      {kind === 'pencil' && (
+        <mesh rotation={[0.5, 0.2, 1.2]}>
+          <cylinderGeometry args={[0.03, 0.03, 0.55, 5]} />
+          <meshBasicMaterial color="#f5d76e" wireframe />
+        </mesh>
+      )}
+      {kind === 'ball' && (
+        <mesh>
+          <icosahedronGeometry args={[0.15, 0]} />
+          <meshBasicMaterial color="#ddd" wireframe />
+        </mesh>
+      )}
+    </group>
   )
 }

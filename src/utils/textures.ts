@@ -39,17 +39,17 @@ function sketchStroke(
 }
 
 /** Richer hand-drawn brick with mortar gaps + hatching */
-export function brickTexture(w = 768, h = 768): THREE.CanvasTexture {
+export function brickTexture(w = 1024, h = 1024): THREE.CanvasTexture {
   const { c, ctx } = makeCanvas(w, h)
-  paperFill(ctx, w, h, '#e8e2d4')
+  paperFill(ctx, w, h, '#e6dfd0')
   // mortar base slightly darker
-  ctx.fillStyle = '#d4cec0'
-  ctx.globalAlpha = 0.35
+  ctx.fillStyle = '#cfc7b6'
+  ctx.globalAlpha = 0.4
   ctx.fillRect(0, 0, w, h)
   ctx.globalAlpha = 1
 
-  const rows = 12
-  const cols = 9
+  const rows = 14
+  const cols = 10
   const bh = h / rows
   const bw = w / cols
   for (let r = 0; r < rows; r++) {
@@ -65,17 +65,28 @@ export function brickTexture(w = 768, h = 768): THREE.CanvasTexture {
       sketchStroke(ctx, x + pad, y + bh - pad, x + bw - pad, y + bh - pad, 1.2, 1.6)
       sketchStroke(ctx, x + pad, y + pad, x + pad, y + bh - pad, 1.2, 1.6)
       sketchStroke(ctx, x + bw - pad, y + pad, x + bw - pad, y + bh - pad, 1.2, 1.6)
-      // internal hatch / wear
-      if (Math.random() > 0.35) {
-        ctx.globalAlpha = 0.28
-        const n = 2 + Math.floor(Math.random() * 4)
+      // denser hatch / wear for sketchbook brick
+      if (Math.random() > 0.2) {
+        ctx.globalAlpha = 0.32
+        const n = 3 + Math.floor(Math.random() * 5)
         for (let i = 0; i < n; i++) {
           sketchStroke(
             ctx,
             x + 6, y + 5 + i * ((bh - 12) / n),
             x + bw - 6, y + 7 + i * ((bh - 12) / n),
-            0.8, 0.8,
+            0.8, 0.9,
           )
+        }
+        // diagonal ticks
+        if (Math.random() > 0.55) {
+          for (let i = 0; i < 3; i++) {
+            sketchStroke(
+              ctx,
+              x + 8 + i * 6, y + bh * 0.3,
+              x + 18 + i * 6, y + bh * 0.7,
+              0.5, 0.7,
+            )
+          }
         }
         ctx.globalAlpha = 1
       }
@@ -92,10 +103,10 @@ export function brickTexture(w = 768, h = 768): THREE.CanvasTexture {
 }
 
 /** High-contrast floor planks */
-export function plankTexture(w = 512, h = 1024): THREE.CanvasTexture {
+export function plankTexture(w = 640, h = 1280): THREE.CanvasTexture {
   const { c, ctx } = makeCanvas(w, h)
-  paperFill(ctx, w, h, '#e4d9c6')
-  const planks = 5
+  paperFill(ctx, w, h, '#dccfb8')
+  const planks = 6
   const pw = w / planks
   for (let i = 0; i < planks; i++) {
     const x = i * pw
@@ -182,7 +193,7 @@ export function paperWallTexture(w = 768, h = 768): THREE.CanvasTexture {
   return tex
 }
 
-export function woodSignTexture(text: string, w = 640, h = 180): THREE.CanvasTexture {
+export function woodSignTexture(text: string, w = 768, h = 220): THREE.CanvasTexture {
   const { c, ctx } = makeCanvas(w, h)
   paperFill(ctx, w, h, '#c4a574')
   for (let i = 0; i < 24; i++) {
@@ -423,22 +434,38 @@ export function projectFrameTexture(
   return tex
 }
 
-export function wordmarkTexture(text: string, tagline: string, w = 1024, h = 512): THREE.CanvasTexture {
+export function wordmarkTexture(text: string, tagline: string, w = 1280, h = 640): THREE.CanvasTexture {
   const { c, ctx } = makeCanvas(w, h)
   ctx.clearRect(0, 0, w, h)
+  // Soft cream plate behind letters for contrast on paper fog
+  ctx.fillStyle = 'rgba(247, 243, 234, 0.55)'
+  ctx.beginPath()
+  ctx.ellipse(w / 2, h / 2 - 10, 520, 210, 0, 0, Math.PI * 2)
+  ctx.fill()
   ctx.fillStyle = '#111'
-  ctx.font = 'bold 160px "Caveat", cursive'
+  ctx.font = 'bold 180px "Caveat", cursive'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText(text, w / 2, h / 2 - 40)
+  ctx.fillText(text, w / 2, h / 2 - 48)
   ctx.strokeStyle = '#111'
-  ctx.lineWidth = 4
-  ctx.strokeText(text, w / 2, h / 2 - 40)
-  // double outline for sketch feel
-  ctx.lineWidth = 1.5
-  ctx.strokeText(text, w / 2 + 2, h / 2 - 38)
-  ctx.font = '40px "Space Grotesk", monospace'
-  ctx.fillText(tagline, w / 2, h / 2 + 90)
+  ctx.lineWidth = 5
+  ctx.strokeText(text, w / 2, h / 2 - 48)
+  // double / triple outline for ink sketch feel
+  ctx.lineWidth = 1.8
+  ctx.strokeText(text, w / 2 + 2.5, h / 2 - 45)
+  ctx.globalAlpha = 0.35
+  ctx.lineWidth = 1.2
+  ctx.strokeText(text, w / 2 - 2, h / 2 - 50)
+  ctx.globalAlpha = 1
+  // hatch shade under word
+  ctx.globalAlpha = 0.2
+  for (let i = 0; i < 8; i++) {
+    sketchStroke(ctx, w * 0.22, h / 2 + 20 + i * 5, w * 0.78, h / 2 + 24 + i * 5, 0.8, 1)
+  }
+  ctx.globalAlpha = 1
+  ctx.font = '44px "Space Grotesk", monospace'
+  ctx.fillStyle = '#1a1a1a'
+  ctx.fillText(tagline, w / 2, h / 2 + 110)
   const tex = new THREE.CanvasTexture(c)
   tex.colorSpace = THREE.SRGBColorSpace
   tex.premultiplyAlpha = false
@@ -681,6 +708,84 @@ export function cobbleTexture(w = 512, h = 512): THREE.CanvasTexture {
   }
   const tex = new THREE.CanvasTexture(c)
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping
+  tex.colorSpace = THREE.SRGBColorSpace
+  return tex
+}
+
+
+/** Single entrance pane: sketch glass door with project name (clickable facade). */
+export function projectDoorPaneTexture(
+  title: string,
+  accent: string,
+  w = 512,
+  h = 640,
+): THREE.CanvasTexture {
+  const { c, ctx } = makeCanvas(w, h)
+  paperFill(ctx, w, h, '#eef3f7')
+  // glass tint
+  ctx.fillStyle = accent
+  ctx.globalAlpha = 0.14
+  ctx.fillRect(14, 14, w - 28, h - 28)
+  ctx.globalAlpha = 1
+  ctx.fillStyle = '#d8e4ee'
+  ctx.globalAlpha = 0.4
+  ctx.fillRect(18, 18, w - 36, h - 36)
+  ctx.globalAlpha = 1
+  // thick ink frame
+  sketchStroke(ctx, 8, 8, w - 8, 8, 1, 3.8)
+  sketchStroke(ctx, 8, h - 8, w - 8, h - 8, 1, 3.8)
+  sketchStroke(ctx, 8, 8, 8, h - 8, 1, 3.8)
+  sketchStroke(ctx, w - 8, 8, w - 8, h - 8, 1, 3.8)
+  sketchStroke(ctx, 16, 16, w - 16, 16, 0.7, 1.4)
+  sketchStroke(ctx, 16, h - 16, w - 16, h - 16, 0.7, 1.4)
+  sketchStroke(ctx, 16, 16, 16, h - 16, 0.7, 1.4)
+  sketchStroke(ctx, w - 16, 16, w - 16, h - 16, 0.7, 1.4)
+  // mid rail
+  sketchStroke(ctx, 22, h * 0.62, w - 22, h * 0.62, 1, 2.2)
+  // handle
+  ctx.beginPath()
+  ctx.arc(w * 0.82, h * 0.48, 11, 0, Math.PI * 2)
+  ctx.strokeStyle = '#1a1a1a'
+  ctx.lineWidth = 2.2
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.arc(w * 0.82, h * 0.48, 4, 0, Math.PI * 2)
+  ctx.fillStyle = '#222'
+  ctx.fill()
+  // accent sticker
+  drawLogoBadge(ctx, 28, 28, 52, accent, (title.split(' ')[0] || '●').slice(0, 6), '#fff')
+  // project title (wrapped)
+  const short = title.length > 28 ? title.slice(0, 26) + '…' : title
+  const words = short.split(' ')
+  ctx.fillStyle = '#111'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  const fontSize = short.length > 18 ? 28 : 34
+  ctx.font = `bold ${fontSize}px "Space Grotesk", sans-serif`
+  let line1 = short
+  let line2 = ''
+  if (words.length > 2) {
+    const mid = Math.ceil(words.length / 2)
+    line1 = words.slice(0, mid).join(' ')
+    line2 = words.slice(mid).join(' ')
+  }
+  const ty = h * 0.78
+  ctx.fillText(line1, w / 2, line2 ? ty - 18 : ty)
+  if (line2) {
+    ctx.font = `bold ${Math.max(22, fontSize - 4)}px "Space Grotesk", sans-serif`
+    ctx.fillText(line2, w / 2, ty + 16)
+  }
+  // "open ↗" cue
+  ctx.font = '16px "Space Grotesk", sans-serif'
+  ctx.fillStyle = '#444'
+  ctx.fillText('GitHub ↗', w / 2, h - 36)
+  // hatch
+  ctx.globalAlpha = 0.12
+  for (let i = 0; i < 5; i++) {
+    sketchStroke(ctx, 28, h * 0.35 + i * 8, w - 40, h * 0.37 + i * 8, 0.5, 0.8)
+  }
+  ctx.globalAlpha = 1
+  const tex = new THREE.CanvasTexture(c)
   tex.colorSpace = THREE.SRGBColorSpace
   return tex
 }

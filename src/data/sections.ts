@@ -3,7 +3,7 @@
  * Camera z ≈ lerp(10, -95, progress)  →  progress ≈ (10 - z) / 105
  */
 export const SECTIONS = [
-  { id: 'enter', label: 'Entrance', at: 0, banner: { title: 'EXPLORER', text: 'Scroll or click to enter the corridor' } },
+  { id: 'enter', label: 'Entrance', at: 0, banner: { title: 'EXPLORER', text: 'Tap a project door · Scroll to enter' } },
   { id: 'hub', label: 'Hub', at: 0.14, banner: { title: 'WANDERER', text: 'Scroll to explore the corridor' } },
   { id: 'gallery', label: 'Gallery', at: 0.28, banner: { title: 'GALLERY', text: 'Hover frames · projects on the walls' } },
   { id: 'about', label: 'About', at: 0.64, banner: { title: 'ABOUT', text: '' } },
