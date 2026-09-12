@@ -1,5 +1,5 @@
 {
-  "name": "saba-3d-portfolio",
+  "name": "saba-fatima-portfolio",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,19 +7,15 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "test": "playwright test",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@gsap/react": "^2.1.2",
-    "@react-three/drei": "^10.7.8",
-    "@react-three/fiber": "^9.7.0",
-    "@types/three": "^0.186.0",
-    "gsap": "^3.15.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "three": "^0.186.0"
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
@@ -28,5 +24,5 @@
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
   },
-  "description": "Saba Fatima \u2014 Interactive 3D sketchbook portfolio"
+  "description": "Saba Fatima — A developer's sketchbook portfolio"
 }
