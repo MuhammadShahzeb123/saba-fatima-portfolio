@@ -61,35 +61,26 @@ html, body, #root {
 }
 
 html {
-  /* Prefer native scroll; contain rubber-band without blocking pan */
-  overscroll-behavior-y: contain;
+  overscroll-behavior: none;
+  height: 100%;
 }
 
 body {
-  overflow-x: hidden;
+  overflow: hidden;
   cursor: default;
   -webkit-tap-highlight-color: transparent;
-  touch-action: pan-y;
+  touch-action: none;
+  height: 100%;
 }
 
-.scroll-track {
-  position: relative;
-  width: 100%;
-  pointer-events: none;
-  z-index: 0;
+#root {
+  height: 100%;
 }
 
 .scene-canvas,
 .scene-canvas canvas {
-  /* Native document scroll drives the camera — canvas must not capture touch. */
-  pointer-events: none !important;
-  touch-action: pan-y !important;
-}
-
-/* Re-enable hit-testing only on intentional Html/DOM hotspots */
-.scene-canvas .html-interactive,
-.scene-canvas .html-interactive * {
   pointer-events: auto !important;
+  touch-action: none !important;
 }
 
 
@@ -265,7 +256,8 @@ body {
   color: var(--accent);
 }
 
-.enter-corridor-btn {
+.enter-corridor-btn,
+.enter-gate-btn {
   position: absolute;
   left: 50%;
   top: auto;
@@ -275,9 +267,10 @@ body {
   z-index: 25;
   font: inherit;
   font-weight: 700;
-  font-size: 0.9rem;
-  padding: 0.7rem 1.15rem;
-  min-height: 44px;
+  font-size: 1.05rem;
+  padding: 1rem 1.6rem;
+  min-height: 56px;
+  min-width: min(280px, calc(100vw - 2rem));
   background: var(--plaque);
   border: 2.5px solid var(--ink);
   box-shadow: 3px 3px 0 var(--shadow);
@@ -562,197 +555,117 @@ body {
 }
 
 
-/* —— Interactive Html hotspots (re-enable clicks while canvas is none) —— */
-.gate-hotspot {
+
+/* —— Info panel (DOM modal) —— */
+.info-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
   pointer-events: auto;
-  font: inherit;
-  font-weight: 700;
-  font-size: 0.85rem;
-  padding: 0.65rem 1.1rem;
-  min-height: 44px;
-  min-width: 120px;
+}
+
+.info-panel {
+  position: relative;
+  width: min(420px, calc(100vw - 1.5rem));
+  max-height: min(80vh, 560px);
+  overflow-y: auto;
+  padding: 1.25rem 1.35rem 1.4rem;
   background: var(--plaque);
   border: 2.5px solid var(--ink);
-  box-shadow: 3px 3px 0 var(--shadow);
-  clip-path: polygon(2% 0, 100% 6%, 97% 100%, 0 94%);
-  cursor: pointer;
+  box-shadow: 4px 5px 0 var(--shadow);
   color: var(--ink);
-  white-space: nowrap;
-}
-
-.gate-hotspot:hover {
-  background: var(--plaque-hover);
-  border-color: var(--accent);
-}
-
-.pane-hotspot {
-  pointer-events: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.15rem;
-  width: 88px;
-  height: 100px;
-  padding: 0.25rem;
-  background: transparent;
-  border: 2px solid transparent;
-  cursor: pointer;
-  color: var(--ink);
-  font: inherit;
-}
-
-.pane-hotspot.hot,
-.pane-hotspot:hover {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--plaque) 55%, transparent);
-}
-
-.pane-hotspot-label {
-  font-size: 0.55rem;
-  font-weight: 700;
-  text-align: center;
-  line-height: 1.15;
-  max-width: 80px;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  text-shadow: 0 0 4px var(--plaque);
-}
-
-.pane-hotspot-cta {
-  font-size: 0.5rem;
-  font-weight: 600;
-  color: var(--accent);
-}
-
-.door-hotspot {
-  pointer-events: auto;
-  width: 140px;
-  height: 160px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.door-card {
-  max-width: min(280px, 78vw) !important;
   pointer-events: auto;
 }
 
-.door-card .door-tags,
-.door-tags {
-  font-size: 0.68rem;
+.info-panel h2 {
+  margin: 0 1.5rem 0.35rem 0;
+  font-family: 'Caveat', cursive;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.info-panel p {
+  margin: 0.4rem 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
   color: var(--muted);
-  margin: 0.25rem 0 0.5rem;
-  letter-spacing: 0.02em;
 }
 
-.door-github-btn {
-  display: inline-block;
-  margin-top: 0.2rem;
-  padding: 0.4rem 0.65rem;
-  min-height: 40px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--ink);
-  background: var(--plaque);
-  border: 2px solid var(--ink);
-  text-decoration: none;
-  box-shadow: 2px 2px 0 var(--shadow);
-  cursor: pointer;
-}
-
-.door-github-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.section-card {
-  opacity: 0.95;
-}
-
-.pane-tooltip {
-  pointer-events: none;
-  max-width: 180px !important;
-  padding: 0.4rem 0.55rem !important;
-}
-
-.pane-tooltip strong {
+.info-panel-meta {
+  color: var(--accent) !important;
+  font-weight: 600;
   font-size: 0.8rem !important;
 }
 
-.pane-tooltip p {
-  margin: 0 !important;
-  font-size: 0.65rem !important;
+.info-panel-tags {
+  font-size: 0.75rem !important;
+  letter-spacing: 0.02em;
 }
 
-/* Mobile ▲ / ▼ scrubber — backup when native swipe feels short */
-.mobile-scrubber {
-  position: fixed;
-  right: max(0.45rem, env(safe-area-inset-right));
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 25;
-  display: flex;
-  flex-direction: column;
+.info-panel-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.info-panel-close {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--ink);
+  background: var(--plaque);
+  color: var(--ink);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.info-panel-cta {
+  display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  pointer-events: auto;
-}
-
-.scrub-btn {
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
+  justify-content: center;
+  margin-top: 0.85rem;
+  padding: 0.65rem 1rem;
   min-height: 44px;
-  display: grid;
-  place-items: center;
-  font-size: 0.95rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink);
   background: var(--plaque);
   border: 2.5px solid var(--ink);
+  text-decoration: none;
   box-shadow: 2px 2px 0 var(--shadow);
-  color: var(--ink);
-  cursor: pointer;
-  clip-path: polygon(6% 0, 100% 8%, 94% 100%, 0 92%);
 }
 
-.scrub-btn:active {
-  transform: translateY(1px);
+.info-panel-cta:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
-.scrub-meter {
-  width: 6px;
-  height: 72px;
-  background: var(--progress-track);
-  border: 1.5px solid var(--border-soft);
-  border-radius: 3px;
-  overflow: hidden;
+.info-panel-links {
   display: flex;
-  flex-direction: column-reverse;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
 }
 
-.scrub-fill {
-  width: 100%;
-  background: var(--accent);
-  transition: height 0.08s linear;
+.info-panel-links a {
+  color: var(--accent);
+  font-weight: 600;
 }
 
-html {
-  /* Allow native vertical scroll; do not trap touch */
-  overscroll-behavior-y: contain;
-  height: auto;
+.enter-gate-btn {
+  font-size: 1.1rem !important;
 }
 
-body {
-  /* Ensure body can scroll the tall track under the fixed canvas */
-  overflow-x: hidden;
-  overflow-y: auto;
-  min-height: 100%;
-  touch-action: pan-y;
-}
-
-#root {
-  min-height: 100%;
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
 }

@@ -111,5 +111,3 @@ export const galleryProjects: GalleryProject[] = data.projects
 export const TAGLINE = '< AI · CV · Flutter />'
 export const NAME = data.profile.name
 
-/** Featured repos shown as clickable entrance door panes (non-stub gallery). */
-export const entranceDoorProjects: GalleryProject[] = galleryProjects.slice(0, 12)

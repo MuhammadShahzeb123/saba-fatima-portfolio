@@ -1,79 +1,16 @@
-import { useMemo, useState, useCallback, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { galleryProjects, portfolio, TAGLINE } from '../data/content'
-import { SECTIONS, bannerForProgress } from '../data/sections'
-import { getScrollMax } from '../hooks/useScrollProgress'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useTheme } from '../theme/ThemeContext'
 import { useGate } from '../context/GateContext'
+import { usePanel } from '../context/PanelContext'
 
-export function HUD({ progress }: { progress: number }) {
+export function HUD() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [soundOn, setSoundOn] = useState(false)
-  const [fade, setFade] = useState(0)
-  const [jumping, setJumping] = useState(false)
   const mobile = useIsMobile()
   const { theme, toggleTheme } = useTheme()
-  const { gateOpen, openGate } = useGate()
-
-  const banner = useMemo(() => {
-    const b = bannerForProgress(progress)
-    let text = ''
-    switch (b.textKey) {
-      case 'enter':
-        text = gateOpen
-          ? mobile
-            ? 'Scroll or use ▲▼ · Tap doors for GitHub'
-            : 'Scroll to enter · Tap project doors for GitHub'
-          : mobile
-            ? 'Tap “Open gate” or scroll slightly to enter'
-            : 'Open the gate · or scroll to swing the doors'
-        break
-      case 'hub':
-        text = 'Scroll to explore the corridor'
-        break
-      case 'gallery':
-        text = `Near a door · ${galleryProjects.length} projects`
-        break
-      case 'about':
-        text = portfolio.about.headline
-        break
-      case 'experience':
-        text = 'Roles & internships'
-        break
-      case 'skills':
-        text = 'Flutter · CV · AI/ML · Python'
-        break
-      case 'contact':
-        text = portfolio.contact.email
-        break
-      default:
-        text = ''
-    }
-    return { title: b.title, text }
-  }, [progress, mobile, gateOpen])
-
-  const jump = useCallback(
-    (at: number) => {
-      if (jumping) return
-      setMenuOpen(false)
-      setJumping(true)
-      setFade(1)
-      window.setTimeout(() => {
-        const max = getScrollMax()
-        window.scrollTo({ top: at * max, behavior: 'auto' })
-        window.setTimeout(() => {
-          setFade(0)
-          setJumping(false)
-        }, 80)
-      }, 280)
-    },
-    [jumping],
-  )
-
-  const openAndEnter = useCallback(() => {
-    openGate()
-    jump(0.14)
-  }, [openGate, jump])
+  const { gateOpen, entered, openGate } = useGate()
+  const { openAbout, openContact } = usePanel()
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -83,12 +20,8 @@ export function HUD({ progress }: { progress: number }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const showEnter = progress < 0.08
-
   return (
     <div className={`hud ${mobile ? 'hud-mobile' : ''}`}>
-      <div className={`hud-fade ${fade > 0 ? 'on' : ''}`} aria-hidden style={{ opacity: fade }} />
-
       <div className="hud-top">
         <div className="hud-brand ink-plaque">
           <span className="hud-name">Saba Fatima</span>
@@ -99,7 +32,6 @@ export function HUD({ progress }: { progress: number }) {
             type="button"
             className="paper-btn ink-btn theme-toggle"
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
             onClick={toggleTheme}
           >
             {theme === 'dark' ? '☀️' : '🌙'}
@@ -113,16 +45,6 @@ export function HUD({ progress }: { progress: number }) {
           >
             ☰
           </button>
-          {!mobile && (
-            <button
-              type="button"
-              className="paper-btn ink-btn"
-              aria-label="Sound"
-              onClick={() => setSoundOn((v) => !v)}
-            >
-              {soundOn ? '🔊' : '🔇'}
-            </button>
-          )}
           <a
             className="paper-btn ink-btn"
             href={portfolio.contact.github}
@@ -137,41 +59,56 @@ export function HUD({ progress }: { progress: number }) {
 
       {menuOpen && (
         <nav className="hud-menu paper-panel ink-plaque">
-          {SECTIONS.map((s) => (
-            <button key={s.id} type="button" onClick={() => jump(s.at)}>
-              {s.label}
-            </button>
-          ))}
+          <button
+            type="button"
+            onClick={() => {
+              setMenuOpen(false)
+              openAbout()
+            }}
+          >
+            About
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMenuOpen(false)
+              openContact()
+            }}
+          >
+            Contact
+          </button>
           <a href={portfolio.contact.linkedin} target="_blank" rel="noreferrer">
             LinkedIn
           </a>
           <a href={`mailto:${portfolio.contact.email}`}>Email</a>
+          <a href={portfolio.contact.github} target="_blank" rel="noreferrer">
+            GitHub
+          </a>
         </nav>
       )}
 
-      {showEnter && (
-        <button
-          type="button"
-          className="enter-corridor-btn"
-          onClick={() => {
-            if (!gateOpen) openAndEnter()
-            else jump(0.14)
-          }}
-        >
-          {gateOpen ? 'Enter corridor · Scroll ↓' : 'Open gate / Enter'}
+      {!gateOpen && (
+        <button type="button" className="enter-corridor-btn enter-gate-btn" onClick={openGate}>
+          Open gate / Enter
         </button>
       )}
 
       <div className="hud-banner torn-banner">
         <div className="banner-check">▦</div>
         <div className="banner-copy">
-          <div className="banner-title">{banner.title}</div>
-          <div className="banner-text">{banner.text}</div>
+          <div className="banner-title">
+            {!gateOpen ? 'Outside' : !entered ? 'Entering…' : 'Gallery'}
+          </div>
+          <div className="banner-text">
+            {!gateOpen
+              ? 'Tap Open gate to step inside'
+              : !entered
+                ? 'Doors swinging open…'
+                : mobile
+                  ? `Drag to look · Tap a door · ${galleryProjects.length} projects`
+                  : `Drag to look around · Click a door · ${galleryProjects.length} projects`}
+          </div>
         </div>
-      </div>
-
-      <div className="hud-progress">
-        <div className="hud-progress-bar" style={{ width: `${Math.min(100, progress * 100)}%` }} />
       </div>
     </div>
   )

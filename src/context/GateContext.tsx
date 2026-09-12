@@ -2,7 +2,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -10,33 +9,23 @@ import {
 
 type GateContextValue = {
   gateOpen: boolean
+  entered: boolean
   openGate: () => void
-  setGateOpen: (v: boolean) => void
+  markEntered: () => void
 }
 
 const GateContext = createContext<GateContextValue | null>(null)
 
-export function GateProvider({
-  children,
-  progress,
-}: {
-  children: ReactNode
-  progress: number
-}) {
+export function GateProvider({ children }: { children: ReactNode }) {
   const [gateOpen, setGateOpen] = useState(false)
+  const [entered, setEntered] = useState(false)
 
   const openGate = useCallback(() => setGateOpen(true), [])
-
-  // Auto-open when scroll crosses a small threshold
-  useEffect(() => {
-    if (!gateOpen && progress >= 0.03) {
-      setGateOpen(true)
-    }
-  }, [progress, gateOpen])
+  const markEntered = useCallback(() => setEntered(true), [])
 
   const value = useMemo(
-    () => ({ gateOpen, openGate, setGateOpen }),
-    [gateOpen, openGate],
+    () => ({ gateOpen, entered, openGate, markEntered }),
+    [gateOpen, entered, openGate, markEntered],
   )
 
   return <GateContext.Provider value={value}>{children}</GateContext.Provider>

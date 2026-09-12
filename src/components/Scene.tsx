@@ -1,13 +1,10 @@
 import { Suspense, useEffect, useMemo } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
+import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
-import { ScrollCamera } from './ScrollCamera'
 import { Exterior } from './Exterior'
-import { Corridor } from './Corridor'
-import { Gallery } from './Gallery'
-import { AboutRoom, ExperienceRoom, SkillsRoom, ContactRoom } from './Rooms'
-import { Character } from './Character'
-import { Doorways } from './Doorways'
+import { Room } from './Room'
+import { EntranceCamera } from './EntranceCamera'
 import { getIsMobile } from '../hooks/useIsMobile'
 import { useTheme } from '../theme/ThemeContext'
 import { clearTextureCache } from '../utils/textures'
@@ -20,9 +17,7 @@ function ThemeEnvironment() {
   useEffect(() => {
     const bg = new THREE.Color(colors.fog)
     scene.background = bg
-    if (scene.fog && scene.fog instanceof THREE.Fog) {
-      scene.fog.color.copy(bg)
-    }
+    if (scene.fog instanceof THREE.Fog) scene.fog.color.copy(bg)
     gl.setClearColor(bg, 1)
     clearTextureCache(theme)
   }, [theme, colors.fog, scene, gl])
@@ -30,45 +25,43 @@ function ThemeEnvironment() {
   return null
 }
 
-/** Pull fog back when near section doors so plaques stay readable. */
-function AdaptiveFog({ progress }: { progress: number }) {
-  const { scene } = useThree()
+function FreeLook() {
+  const { entered } = useGate()
   const mobile = useMemo(() => getIsMobile(), [])
-  const { colors } = useTheme()
 
-  useEffect(() => {
-    const fog = scene.fog
-    if (!(fog instanceof THREE.Fog)) return
-    // Door zones (approx progress): gallery ~0.25–0.55, about 0.64, exp 0.74, skills 0.84, contact 0.94
-    const nearDoor =
-      (progress > 0.22 && progress < 0.58) ||
-      (progress > 0.6 && progress < 0.98)
-    const baseNear = mobile ? 22 : 26
-    const baseFar = mobile ? 70 : 85
-    fog.near = nearDoor ? (mobile ? 14 : 16) : baseNear
-    fog.far = nearDoor ? (mobile ? 55 : 68) : baseFar
-    fog.color.set(colors.fog)
-  }, [progress, scene, mobile, colors.fog])
-
-  return null
+  return (
+    <OrbitControls
+      makeDefault
+      enabled={entered}
+      enableRotate={entered}
+      enablePan={entered}
+      enableZoom={entered}
+      enableDamping
+      dampingFactor={0.08}
+      rotateSpeed={mobile ? 0.7 : 0.55}
+      panSpeed={0.35}
+      minDistance={2.5}
+      maxDistance={14}
+      minPolarAngle={0.35}
+      maxPolarAngle={Math.PI / 2 - 0.12}
+      target={[0, 1.35, -5]}
+    />
+  )
 }
 
-export function Scene({ progress }: { progress: number }) {
+export function Scene() {
   const mobile = useMemo(() => getIsMobile(), [])
   const { theme, colors } = useTheme()
-  const { gateOpen } = useGate()
   const dpr = useMemo(
     () => (mobile ? ([1, 1.5] as [number, number]) : ([1, 1.75] as [number, number])),
     [mobile],
   )
-  const fogNear = mobile ? 22 : 26
-  const fogFar = mobile ? 70 : 85
 
   return (
     <Canvas
       className="scene-canvas"
       dpr={dpr}
-      camera={{ position: [0, 1.55, 10], fov: 52, near: 0.2, far: 200 }}
+      camera={{ position: [0, 1.55, 9.5], fov: 52, near: 0.2, far: 120 }}
       gl={{
         antialias: !mobile,
         powerPreference: mobile ? 'low-power' : 'high-performance',
@@ -78,31 +71,23 @@ export function Scene({ progress }: { progress: number }) {
         position: 'fixed',
         inset: 0,
         background: colors.paper,
-        // CRITICAL: let native document scroll work on mobile
-        pointerEvents: 'none',
-        touchAction: 'pan-y',
+        pointerEvents: 'auto',
+        touchAction: 'none',
       }}
       onCreated={({ gl }) => {
-        gl.domElement.style.touchAction = 'pan-y'
-        gl.domElement.style.pointerEvents = 'none'
+        gl.domElement.style.touchAction = 'none'
+        gl.domElement.style.pointerEvents = 'auto'
         gl.setClearColor(new THREE.Color(colors.paper), 1)
       }}
     >
       <color attach="background" args={[colors.fog]} />
-      <fog attach="fog" args={[colors.fog, fogNear, fogFar]} />
+      <fog attach="fog" args={[colors.fog, mobile ? 18 : 22, mobile ? 55 : 70]} />
       <ThemeEnvironment />
-      <AdaptiveFog progress={progress} />
-      <ScrollCamera progress={progress} gateOpen={gateOpen} />
+      <EntranceCamera />
+      <FreeLook />
       <Suspense fallback={null}>
         <Exterior />
-        <Corridor />
-        <Character />
-        <Doorways progress={progress} />
-        <Gallery progress={progress} />
-        <AboutRoom />
-        <ExperienceRoom />
-        <SkillsRoom />
-        <ContactRoom />
+        <Room />
       </Suspense>
       <ambientLight intensity={theme === 'dark' ? 0.85 : 1} />
     </Canvas>
