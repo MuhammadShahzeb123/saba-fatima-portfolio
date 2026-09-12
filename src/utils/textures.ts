@@ -211,7 +211,7 @@ export function woodSignTexture(text: string, w = 768, h = 220, theme: Theme = '
   sketchStroke(ctx, 14, 14, 14, h - 14, 0.8, 1.2, p.ink)
   sketchStroke(ctx, w - 14, 14, w - 14, h - 14, 0.8, 1.2, p.ink)
 
-  const fontSize = Math.min(Math.floor(h * 0.48), Math.floor((w * 0.9) / Math.max(text.length * 0.55, 4)))
+  const fontSize = Math.min(Math.floor(h * 0.52), Math.floor((w * 0.92) / Math.max(text.length * 0.5, 4)))
   ctx.fillStyle = p.woodSignText
   ctx.font = `bold ${fontSize}px "Space Grotesk", sans-serif`
   ctx.textAlign = 'center'
@@ -413,19 +413,19 @@ export function projectFrameTexture(
   sketchStroke(ctx, w / 2 - 58, h - 24, w / 2 + 58, h - 24, 0.5, 2.2, p.ink)
 
   ctx.fillStyle = p.ink
-  const titleSize = title.length > 18 ? 28 : title.length > 12 ? 34 : 40
+  const titleSize = title.length > 18 ? 48 : title.length > 12 ? 56 : 64
   ctx.font = `bold ${titleSize}px "Space Grotesk", sans-serif`
   ctx.textAlign = 'center'
   const short = title.length > 26 ? title.slice(0, 24) + '…' : title
   ctx.fillText(short, w / 2, h * 0.4)
   ctx.strokeStyle = p.ink
-  ctx.lineWidth = 0.8
+  ctx.lineWidth = 1.4
   ctx.strokeText(short, w / 2, h * 0.4)
 
-  ctx.font = '18px "Space Grotesk", sans-serif'
+  ctx.font = 'bold 26px "Space Grotesk", sans-serif'
   ctx.fillStyle = colored ? color : p.muted
   const sub = subtitle.length > 36 ? subtitle.slice(0, 34) + '…' : subtitle
-  ctx.fillText(sub, w / 2, h * 0.52)
+  ctx.fillText(sub, w / 2, h * 0.55)
   const tex = new THREE.CanvasTexture(c)
   tex.colorSpace = THREE.SRGBColorSpace
   return tex
@@ -750,7 +750,8 @@ export function projectDoorPaneTexture(
   ctx.fillStyle = p.ink
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  const fontSize = short.length > 18 ? 28 : 34
+  // Large high-contrast labels (min ~48–64px on canvas)
+  const fontSize = short.length > 18 ? 48 : 58
   ctx.font = `bold ${fontSize}px "Space Grotesk", sans-serif`
   let line1 = short
   let line2 = ''
@@ -760,14 +761,18 @@ export function projectDoorPaneTexture(
     line2 = words.slice(mid).join(' ')
   }
   const ty = h * 0.78
-  ctx.fillText(line1, w / 2, line2 ? ty - 18 : ty)
+  ctx.fillText(line1, w / 2, line2 ? ty - 28 : ty)
+  ctx.strokeStyle = p.ink
+  ctx.lineWidth = 1.2
+  ctx.strokeText(line1, w / 2, line2 ? ty - 28 : ty)
   if (line2) {
-    ctx.font = `bold ${Math.max(22, fontSize - 4)}px "Space Grotesk", sans-serif`
-    ctx.fillText(line2, w / 2, ty + 16)
+    ctx.font = `bold ${Math.max(36, fontSize - 8)}px "Space Grotesk", sans-serif`
+    ctx.fillText(line2, w / 2, ty + 24)
+    ctx.strokeText(line2, w / 2, ty + 24)
   }
-  ctx.font = '16px "Space Grotesk", sans-serif'
+  ctx.font = 'bold 28px "Space Grotesk", sans-serif'
   ctx.fillStyle = p.muted
-  ctx.fillText('GitHub ↗', w / 2, h - 36)
+  ctx.fillText('GitHub ↗', w / 2, h - 40)
   ctx.globalAlpha = 0.12
   for (let i = 0; i < 5; i++) {
     sketchStroke(ctx, 28, h * 0.35 + i * 8, w - 40, h * 0.37 + i * 8, 0.5, 0.8, p.ink)

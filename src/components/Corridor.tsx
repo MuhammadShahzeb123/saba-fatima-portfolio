@@ -172,17 +172,20 @@ function WallPoster({
 }
 
 function DoorLabel({ text, position }: { text: string; position: [number, number, number] }) {
-  const { theme } = useTheme()
-  const tex = useMemo(() => cached(`label-${text}@${theme}`, () => woodSignTexture(text, 768, 200, theme)), [text, theme])
+  const { theme, colors } = useTheme()
+  const tex = useMemo(() => cached(`label-lg-${text}@${theme}`, () => woodSignTexture(text, 1024, 280, theme)), [text, theme])
   const facing = position[0] < 0 ? 1 : position[0] > 0 ? -1 : 0
   return (
-    <mesh
-      position={position}
-      rotation={[0, facing === 0 ? 0 : facing * (Math.PI / 2) * 0.05, 0]}
-    >
-      <planeGeometry args={[2.5, 0.62]} />
-      <meshBasicMaterial map={tex} transparent />
-    </mesh>
+    <group position={position} rotation={[0, facing === 0 ? 0 : facing * (Math.PI / 2) * 0.05, 0]}>
+      <mesh position={[0, 0, -0.03]}>
+        <boxGeometry args={[2.85, 0.78, 0.08]} />
+        <meshBasicMaterial color={colors.signBoard} />
+      </mesh>
+      <mesh>
+        <planeGeometry args={[2.75, 0.72]} />
+        <meshBasicMaterial map={tex} transparent />
+      </mesh>
+    </group>
   )
 }
 

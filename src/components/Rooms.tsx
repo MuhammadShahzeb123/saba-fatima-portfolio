@@ -154,22 +154,21 @@ export function ContactRoom() {
         const x = (i - 2) * 0.95
         return (
           <group key={link.id} position={[x, 0.9, -3.2]}>
-            <mesh
-              onPointerOver={() => {
-                setHovered(link.id)
-                document.body.style.cursor = 'pointer'
-              }}
-              onPointerOut={() => {
-                setHovered(null)
-                document.body.style.cursor = 'auto'
-              }}
-              onClick={() => window.open(link.url, '_blank', 'noopener,noreferrer')}
-            >
+            <mesh>
               <boxGeometry args={[0.75, 0.9, 0.12]} />
               <meshBasicMaterial color={hovered === link.id ? colors.accent : colors.signBoard} />
             </mesh>
-            <Html position={[0, 0, 0.1]} center distanceFactor={6}>
-              <div className={`contact-sign ${hovered === link.id ? 'hot' : ''}`}>{link.label}</div>
+            <Html position={[0, 0, 0.1]} center occlude={false} wrapperClass="html-interactive" distanceFactor={6} style={{ pointerEvents: 'auto' }}>
+              <a
+                className={`contact-sign ${hovered === link.id ? 'hot' : ''}`}
+                href={link.url}
+                target="_blank"
+                rel="noreferrer"
+                onMouseEnter={() => setHovered(link.id)}
+                onMouseLeave={() => setHovered(null)}
+              >
+                {link.label}
+              </a>
             </Html>
           </group>
         )

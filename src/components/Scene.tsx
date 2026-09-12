@@ -11,6 +11,7 @@ import { Doorways } from './Doorways'
 import { getIsMobile } from '../hooks/useIsMobile'
 import { useTheme } from '../theme/ThemeContext'
 import { clearTextureCache } from '../utils/textures'
+import { useGate } from '../context/GateContext'
 
 function ThemeEnvironment() {
   const { theme, colors } = useTheme()
@@ -29,9 +30,33 @@ function ThemeEnvironment() {
   return null
 }
 
+/** Pull fog back when near section doors so plaques stay readable. */
+function AdaptiveFog({ progress }: { progress: number }) {
+  const { scene } = useThree()
+  const mobile = useMemo(() => getIsMobile(), [])
+  const { colors } = useTheme()
+
+  useEffect(() => {
+    const fog = scene.fog
+    if (!(fog instanceof THREE.Fog)) return
+    // Door zones (approx progress): gallery ~0.25–0.55, about 0.64, exp 0.74, skills 0.84, contact 0.94
+    const nearDoor =
+      (progress > 0.22 && progress < 0.58) ||
+      (progress > 0.6 && progress < 0.98)
+    const baseNear = mobile ? 22 : 26
+    const baseFar = mobile ? 70 : 85
+    fog.near = nearDoor ? (mobile ? 14 : 16) : baseNear
+    fog.far = nearDoor ? (mobile ? 55 : 68) : baseFar
+    fog.color.set(colors.fog)
+  }, [progress, scene, mobile, colors.fog])
+
+  return null
+}
+
 export function Scene({ progress }: { progress: number }) {
   const mobile = useMemo(() => getIsMobile(), [])
   const { theme, colors } = useTheme()
+  const { gateOpen } = useGate()
   const dpr = useMemo(
     () => (mobile ? ([1, 1.5] as [number, number]) : ([1, 1.75] as [number, number])),
     [mobile],
@@ -53,23 +78,27 @@ export function Scene({ progress }: { progress: number }) {
         position: 'fixed',
         inset: 0,
         background: colors.paper,
+        // CRITICAL: let native document scroll work on mobile
+        pointerEvents: 'none',
         touchAction: 'pan-y',
       }}
       onCreated={({ gl }) => {
         gl.domElement.style.touchAction = 'pan-y'
+        gl.domElement.style.pointerEvents = 'none'
         gl.setClearColor(new THREE.Color(colors.paper), 1)
       }}
     >
       <color attach="background" args={[colors.fog]} />
       <fog attach="fog" args={[colors.fog, fogNear, fogFar]} />
       <ThemeEnvironment />
-      <ScrollCamera progress={progress} />
+      <AdaptiveFog progress={progress} />
+      <ScrollCamera progress={progress} gateOpen={gateOpen} />
       <Suspense fallback={null}>
         <Exterior />
         <Corridor />
         <Character />
-        <Doorways />
-        <Gallery />
+        <Doorways progress={progress} />
+        <Gallery progress={progress} />
         <AboutRoom />
         <ExperienceRoom />
         <SkillsRoom />

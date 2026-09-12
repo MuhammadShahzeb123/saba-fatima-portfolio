@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import {
   brickTexture,
@@ -12,6 +13,8 @@ import {
 } from '../utils/textures'
 import { entranceDoorProjects, type GalleryProject } from '../data/content'
 import { useTheme } from '../theme/ThemeContext'
+import { GateDoors } from './GateDoors'
+import { useGate } from '../context/GateContext'
 
 const COLS = 4
 const ROWS = 3
@@ -61,7 +64,6 @@ export function Exterior() {
 
   return (
     <group position={[0, 0, 2]}>
-      {/* Facade brick — slight depth slab */}
       <mesh position={[0, 2.35, -0.08]}>
         <boxGeometry args={[14.2, 6.4, 0.18]} />
         <meshBasicMaterial map={brick} />
@@ -71,13 +73,10 @@ export function Exterior() {
         <meshBasicMaterial map={brick} />
       </mesh>
 
-      {/* Deep entrance opening + frame */}
       <DoorFrameWall />
-
-      {/* Wall of project doors / logo-panes */}
+      <GateDoors />
       <ProjectDoorWall doors={doors} />
 
-      {/* PORTFOLIO hanging sign */}
       <mesh position={[0, 3.85, 0.22]}>
         <boxGeometry args={[3.35, 0.95, 0.12]} />
         <meshBasicMaterial color={colors.signBoard} />
@@ -97,7 +96,6 @@ export function Exterior() {
         </group>
       ))}
 
-      {/* Window with depth */}
       <group position={[4.15, 2.45, 0.12]}>
         <mesh position={[0, 0, -0.06]}>
           <boxGeometry args={[2.15, 2.15, 0.14]} />
@@ -125,7 +123,6 @@ export function Exterior() {
         </mesh>
       </group>
 
-      {/* Planter — boxed depth + texture face */}
       <group position={[4.15, 0.55, 0.45]}>
         <mesh>
           <boxGeometry args={[2.5, 0.75, 0.7]} />
@@ -141,7 +138,6 @@ export function Exterior() {
         </mesh>
       </group>
 
-      {/* Tree */}
       <group position={[-4.55, 0, 0.45]}>
         <mesh position={[0, 1.4, 0]}>
           <cylinderGeometry args={[0.16, 0.22, 2.8, 8]} />
@@ -159,7 +155,6 @@ export function Exterior() {
           <planeGeometry args={[3.4, 3.4]} />
           <meshBasicMaterial map={foliage} transparent depthWrite={false} />
         </mesh>
-        {/* computer mouse fruit */}
         <group position={[0.9, 2.4, 0.25]}>
           <mesh>
             <boxGeometry args={[0.24, 0.15, 0.3]} />
@@ -176,19 +171,16 @@ export function Exterior() {
         </group>
       </group>
 
-      {/* Cat */}
       <mesh position={[-2.2, 0.48, 0.95]}>
         <planeGeometry args={[0.95, 0.95]} />
         <meshBasicMaterial map={cat} transparent depthWrite={false} />
       </mesh>
 
-      {/* Bug doodle */}
       <mesh position={[2.15, 3.95, 0.1]}>
         <circleGeometry args={[0.09, 6]} />
         <meshBasicMaterial color={colors.ink} wireframe />
       </mesh>
 
-      {/* Cobble path with slight thickness cue */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 3.3]}>
         <planeGeometry args={[3.4, 8.2]} />
         <meshBasicMaterial map={cobble} />
@@ -208,7 +200,6 @@ function DoorFrameWall() {
   const T = 0.22
   return (
     <group position={[0, 1.55, 0.08]}>
-      {/* Outer deep frame */}
       <mesh position={[0, 0, -0.05]}>
         <boxGeometry args={[W + 0.35, H + 0.35, T]} />
         <meshBasicMaterial color={colors.doorFrameDeep} />
@@ -217,12 +208,10 @@ function DoorFrameWall() {
         <edgesGeometry args={[new THREE.BoxGeometry(W + 0.35, H + 0.35, T)]} />
         <lineBasicMaterial color={colors.ink} />
       </lineSegments>
-      {/* Inner reveal */}
       <mesh position={[0, 0, 0.02]}>
         <boxGeometry args={[W + 0.08, H + 0.08, 0.1]} />
         <meshBasicMaterial color={colors.doorFrameInner} />
       </mesh>
-      {/* Lintel */}
       <mesh position={[0, H / 2 + 0.12, 0.12]}>
         <boxGeometry args={[W + 0.5, 0.18, 0.28]} />
         <meshBasicMaterial color={colors.doorFrame} />
@@ -232,25 +221,34 @@ function DoorFrameWall() {
 }
 
 function ProjectDoorWall({ doors }: { doors: GalleryProject[] }) {
-  const paneW = 1.0
-  const paneH = 0.92
-  const gapX = 0.08
-  const gapY = 0.08
+  const { gateOpen } = useGate()
+  const paneW = 1.05
+  const paneH = 0.98
+  const gapX = 0.06
+  const gapY = 0.06
   const totalW = COLS * paneW + (COLS - 1) * gapX
   const totalH = ROWS * paneH + (ROWS - 1) * gapY
   const originX = -totalW / 2 + paneW / 2
   const originY = 1.55 + totalH / 2 - paneH / 2
 
+  // Sit just behind the swinging gate so panes appear when doors open
   return (
-    <group position={[0, 0, 0.2]}>
+    <group position={[0, 0, 0.12]} >
       {doors.map((project, i) => {
         const col = i % COLS
         const row = Math.floor(i / COLS)
         const x = originX + col * (paneW + gapX)
         const y = originY - row * (paneH + gapY)
-        return <ProjectDoorPane key={project.id} project={project} position={[x, y, 0]} size={[paneW, paneH]} />
+        return (
+          <ProjectDoorPane
+            key={project.id}
+            project={project}
+            position={[x, y, 0]}
+            size={[paneW, paneH]}
+            interactive={gateOpen}
+          />
+        )
       })}
-      {/* Scroll cue plaque under doors */}
       <CuePlate />
       <ScrollCueLabel />
     </group>
@@ -260,7 +258,7 @@ function ProjectDoorWall({ doors }: { doors: GalleryProject[] }) {
 function CuePlate() {
   const { colors } = useTheme()
   return (
-    <mesh position={[0, 0.28, 0.05]}>
+    <mesh position={[0, 0.22, 0.05]}>
       <planeGeometry args={[3.6, 0.32]} />
       <meshBasicMaterial color={colors.cuePlate} />
     </mesh>
@@ -269,9 +267,10 @@ function CuePlate() {
 
 function ScrollCueLabel() {
   const { theme, colors } = useTheme()
+  const { gateOpen } = useGate()
   const tex = useMemo(
     () =>
-      cached(`scroll-cue@${theme}`, () => {
+      cached(`scroll-cue-v2@${theme}`, () => {
         const c = document.createElement('canvas')
         c.width = 768
         c.height = 96
@@ -285,15 +284,16 @@ function ScrollCueLabel() {
         ctx.font = 'bold 36px "Space Grotesk", sans-serif'
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
-        ctx.fillText('Scroll to enter corridor  ↓', 384, 50)
+        ctx.fillText('Open gate · Scroll to enter  ↓', 384, 50)
         const t = new THREE.CanvasTexture(c)
         t.colorSpace = THREE.SRGBColorSpace
         return t
       }),
     [theme, colors.scrollCueBg, colors.scrollCueInk],
   )
+  if (gateOpen) return null
   return (
-    <mesh position={[0, 0.28, 0.06]}>
+    <mesh position={[0, 0.22, 0.06]}>
       <planeGeometry args={[3.55, 0.3]} />
       <meshBasicMaterial map={tex} transparent />
     </mesh>
@@ -304,79 +304,57 @@ function ProjectDoorPane({
   project,
   position,
   size,
+  interactive,
 }: {
   project: GalleryProject
   position: [number, number, number]
   size: [number, number]
+  interactive: boolean
 }) {
   const [hot, setHot] = useState(false)
   const { theme, colors } = useTheme()
   const tex = useMemo(
     () =>
-      cached(`door-pane-${project.id}@${theme}`, () =>
-        projectDoorPaneTexture(project.title, project.color, 512, 640, theme),
+      cached(`door-pane-hi-${project.id}@${theme}`, () =>
+        projectDoorPaneTexture(project.title, project.color, 640, 800, theme),
       ),
     [project, theme],
   )
 
-  const open = (e: { stopPropagation: () => void }) => {
-    e.stopPropagation()
-    window.open(project.url, '_blank', 'noopener,noreferrer')
-  }
-
   return (
     <group position={position}>
-      {/* Depth box frame */}
       <mesh position={[0, 0, -0.04]}>
-        <boxGeometry args={[size[0] + 0.06, size[1] + 0.06, 0.1]} />
+        <boxGeometry args={[size[0] + 0.08, size[1] + 0.08, 0.12]} />
         <meshBasicMaterial color={hot ? colors.doorHot : colors.doorIdle} />
       </mesh>
-      {/* Large tap target */}
-      <mesh
-        position={[0, 0, 0.02]}
-        onPointerOver={(e) => {
-          e.stopPropagation()
-          setHot(true)
-          document.body.style.cursor = 'pointer'
-        }}
-        onPointerOut={() => {
-          setHot(false)
-          document.body.style.cursor = 'auto'
-        }}
-        onClick={open}
-        onPointerDown={(e) => {
-          // Mobile: treat short taps as click even if scroll bridge runs
-          e.stopPropagation()
-        }}
-        onPointerUp={(e) => {
-          e.stopPropagation()
-          // R3F mobile sometimes misses onClick; open on pointer up if little move
-          if ('detail' in e && (e as unknown as { detail?: number }).detail === 0) {
-            /* noop */
-          }
-        }}
-      >
+      <mesh position={[0, 0, 0.02]}>
         <planeGeometry args={[size[0], size[1]]} />
         <meshBasicMaterial map={tex} color={hot ? colors.doorTintHot : colors.doorTintIdle} />
       </mesh>
-      {/* Invisible larger hit area for fat-finger taps (~44px equivalent in world) */}
-      <mesh
-        position={[0, 0, 0.03]}
-        visible={false}
-        onClick={open}
-        onPointerOver={(e) => {
-          e.stopPropagation()
-          setHot(true)
-          document.body.style.cursor = 'pointer'
-        }}
-        onPointerOut={() => {
-          setHot(false)
-          document.body.style.cursor = 'auto'
-        }}
-      >
-        <planeGeometry args={[size[0] + 0.12, size[1] + 0.12]} />
-        <meshBasicMaterial />
-      </mesh>
+      {/* Html hotspot — pointer events auto so taps work with canvas none */}
+      {interactive && (
+        <Html position={[0, 0, 0.08]} center occlude={false} wrapperClass="html-interactive" style={{ pointerEvents: 'auto' }}>
+          <button
+            type="button"
+            className={`pane-hotspot ${hot ? 'hot' : ''}`}
+            title={project.title}
+            onMouseEnter={() => setHot(true)}
+            onMouseLeave={() => setHot(false)}
+            onClick={() => window.open(project.url, '_blank', 'noopener,noreferrer')}
+          >
+            <span className="pane-hotspot-label">{project.title}</span>
+            <span className="pane-hotspot-cta">GitHub ↗</span>
+          </button>
+        </Html>
+      )}
+      {hot && interactive && (
+        <Html position={[0, size[1] * 0.55, 0.1]} center occlude={false} style={{ pointerEvents: 'none' }}>
+          <div className="project-tooltip pane-tooltip">
+            <strong>{project.title}</strong>
+            <p>{project.name}</p>
+          </div>
+        </Html>
+      )}
     </group>
   )
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { getIsMobile } from './useIsMobile'
 
 /** Viewport height used for scroll math (visualViewport on mobile). */
 export function getViewportHeight() {
@@ -15,7 +16,6 @@ export function useVisualViewportCssVar() {
     const apply = () => {
       const h = getViewportHeight()
       document.documentElement.style.setProperty('--vvh', `${h * 0.01}px`)
-      // Also sync classic --vh for fallbacks
       document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`)
     }
     apply()
@@ -31,58 +31,13 @@ export function useVisualViewportCssVar() {
 }
 
 /**
- * Touch → window scroll bridge for fixed WebGL canvas.
- * Browser pan-y alone is unreliable when R3F captures pointers.
+ * Native document scroll is the camera driver.
+ * Do NOT preventDefault on touchmove — canvas uses pointer-events:none
+ * so the browser scrolls the tall .scroll-track freely.
  */
 export function useTouchScrollBridge() {
-  useEffect(() => {
-    let startY = 0
-    let startScroll = 0
-    let tracking = false
-    let moved = false
-
-    const onStart = (e: TouchEvent) => {
-      if (e.touches.length !== 1) return
-      const t = e.target as HTMLElement | null
-      // Let HUD / links / buttons handle their own touches
-      if (t?.closest?.('.hud, a, button, .paper-btn, .hud-menu, .enter-corridor-btn, input, textarea')) return
-      // Prefer canvas / webgl surface; still allow body touches
-      startY = e.touches[0].clientY
-      startScroll = window.scrollY
-      tracking = true
-      moved = false
-    }
-
-    const onMove = (e: TouchEvent) => {
-      if (!tracking || e.touches.length !== 1) return
-      const dy = startY - e.touches[0].clientY
-      if (Math.abs(dy) > 6) moved = true
-      if (moved) {
-        // Drive page scroll so ScrollCamera advances on phones
-        window.scrollTo(0, startScroll + dy)
-        // Prevent browser gesture fighting our scroll when we own it
-        if (e.cancelable) e.preventDefault()
-      }
-    }
-
-    const onEnd = () => {
-      tracking = false
-      moved = false
-    }
-
-    // Capture on document so touches on canvas still reach us
-    document.addEventListener('touchstart', onStart, { passive: true, capture: true })
-    document.addEventListener('touchmove', onMove, { passive: false, capture: true })
-    document.addEventListener('touchend', onEnd, { passive: true, capture: true })
-    document.addEventListener('touchcancel', onEnd, { passive: true, capture: true })
-
-    return () => {
-      document.removeEventListener('touchstart', onStart, true)
-      document.removeEventListener('touchmove', onMove, true)
-      document.removeEventListener('touchend', onEnd, true)
-      document.removeEventListener('touchcancel', onEnd, true)
-    }
-  }, [])
+  // Intentionally empty: previous preventDefault bridge blocked mobile scroll.
+  // Interactions live in HUD / Html hotspots with pointer-events:auto.
 }
 
 /** Maps window scroll to 0–1 progress over a tall scroll track. */
@@ -98,14 +53,14 @@ export function useScrollProgress() {
       cancelAnimationFrame(raf)
       raf = requestAnimationFrame(() => {
         const raw = readRaw()
-        smooth.current += (raw - smooth.current) * 0.14
+        smooth.current += (raw - smooth.current) * 0.18
         setProgress(smooth.current)
       })
     }
 
     const tick = () => {
       const raw = readRaw()
-      const next = smooth.current + (raw - smooth.current) * 0.1
+      const next = smooth.current + (raw - smooth.current) * 0.12
       if (Math.abs(next - smooth.current) > 0.00005) {
         smooth.current = next
         setProgress(next)
@@ -126,5 +81,9 @@ export function useScrollProgress() {
   return progress
 }
 
-/** Tall track; paired with --vvh so mobile viewports get real scroll distance. */
+/** Tall track; taller on mobile so finger swipes have room to move the camera. */
+export function getScrollHeightVh() {
+  return getIsMobile() ? 1200 : 900
+}
+
 export const SCROLL_HEIGHT_VH = 900

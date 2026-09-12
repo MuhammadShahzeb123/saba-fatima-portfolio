@@ -1,32 +1,50 @@
+import { useCallback, useMemo } from 'react'
 import { Scene } from './components/Scene'
 import { HUD } from './components/HUD'
 import {
   useScrollProgress,
   useVisualViewportCssVar,
-  useTouchScrollBridge,
-  SCROLL_HEIGHT_VH,
+  getScrollHeightVh,
+  getScrollMax,
 } from './hooks/useScrollProgress'
 import { galleryProjects } from './data/content'
 import { useIsMobile } from './hooks/useIsMobile'
+import { GateProvider } from './context/GateContext'
 
 export default function App() {
   const progress = useScrollProgress()
   useVisualViewportCssVar()
-  useTouchScrollBridge()
   const mobile = useIsMobile()
+  const scrollVh = useMemo(() => getScrollHeightVh(), [mobile])
+
+  const nudgeScroll = useCallback((dir: 1 | -1) => {
+    const max = getScrollMax()
+    const step = getScrollMax() * 0.1 || window.innerHeight * 0.1
+    // Prefer 10% of max scroll range so scrubber advances camera meaningfully
+    const amount = Math.max(step, max * 0.1)
+    window.scrollTo({ top: Math.max(0, Math.min(max, window.scrollY + dir * amount)), behavior: 'smooth' })
+  }, [])
 
   return (
-    <>
+    <GateProvider progress={progress}>
       <Scene progress={progress} />
       <HUD progress={progress} />
       <div
         className="scroll-track"
-        style={{ height: `calc(var(--vvh, 1vh) * ${SCROLL_HEIGHT_VH})` }}
+        style={{ height: `calc(var(--vvh, 1vh) * ${scrollVh})` }}
         aria-hidden
       />
       {mobile && (
-        <div className="mobile-hint" aria-hidden>
-          Swipe to scroll · Tap doors for GitHub
+        <div className="mobile-scrubber" aria-label="Scroll controls">
+          <button type="button" className="scrub-btn" aria-label="Scroll up" onClick={() => nudgeScroll(-1)}>
+            ▲
+          </button>
+          <div className="scrub-meter">
+            <div className="scrub-fill" style={{ height: `${Math.min(100, progress * 100)}%` }} />
+          </div>
+          <button type="button" className="scrub-btn" aria-label="Scroll down" onClick={() => nudgeScroll(1)}>
+            ▼
+          </button>
         </div>
       )}
       <noscript>
@@ -35,6 +53,6 @@ export default function App() {
           experience.
         </p>
       </noscript>
-    </>
+    </GateProvider>
   )
 }

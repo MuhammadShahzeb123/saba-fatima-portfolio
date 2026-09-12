@@ -4,6 +4,7 @@ import { SECTIONS, bannerForProgress } from '../data/sections'
 import { getScrollMax } from '../hooks/useScrollProgress'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useTheme } from '../theme/ThemeContext'
+import { useGate } from '../context/GateContext'
 
 export function HUD({ progress }: { progress: number }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -12,21 +13,26 @@ export function HUD({ progress }: { progress: number }) {
   const [jumping, setJumping] = useState(false)
   const mobile = useIsMobile()
   const { theme, toggleTheme } = useTheme()
+  const { gateOpen, openGate } = useGate()
 
   const banner = useMemo(() => {
     const b = bannerForProgress(progress)
     let text = ''
     switch (b.textKey) {
       case 'enter':
-        text = mobile
-          ? 'Tap a door for GitHub · Scroll to enter'
-          : 'Tap a project door · Scroll to enter the corridor'
+        text = gateOpen
+          ? mobile
+            ? 'Scroll or use ▲▼ · Tap doors for GitHub'
+            : 'Scroll to enter · Tap project doors for GitHub'
+          : mobile
+            ? 'Tap “Open gate” or scroll slightly to enter'
+            : 'Open the gate · or scroll to swing the doors'
         break
       case 'hub':
         text = 'Scroll to explore the corridor'
         break
       case 'gallery':
-        text = `Hover frames · ${galleryProjects.length} projects on the walls`
+        text = `Near a door · ${galleryProjects.length} projects`
         break
       case 'about':
         text = portfolio.about.headline
@@ -44,7 +50,7 @@ export function HUD({ progress }: { progress: number }) {
         text = ''
     }
     return { title: b.title, text }
-  }, [progress, mobile])
+  }, [progress, mobile, gateOpen])
 
   const jump = useCallback(
     (at: number) => {
@@ -64,6 +70,11 @@ export function HUD({ progress }: { progress: number }) {
     [jumping],
   )
 
+  const openAndEnter = useCallback(() => {
+    openGate()
+    jump(0.14)
+  }, [openGate, jump])
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMenuOpen(false)
@@ -72,7 +83,7 @@ export function HUD({ progress }: { progress: number }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const showEnter = progress < 0.06
+  const showEnter = progress < 0.08
 
   return (
     <div className={`hud ${mobile ? 'hud-mobile' : ''}`}>
@@ -139,8 +150,15 @@ export function HUD({ progress }: { progress: number }) {
       )}
 
       {showEnter && (
-        <button type="button" className="enter-corridor-btn" onClick={() => jump(0.14)}>
-          Enter corridor · Scroll ↓
+        <button
+          type="button"
+          className="enter-corridor-btn"
+          onClick={() => {
+            if (!gateOpen) openAndEnter()
+            else jump(0.14)
+          }}
+        >
+          {gateOpen ? 'Enter corridor · Scroll ↓' : 'Open gate / Enter'}
         </button>
       )}
 
