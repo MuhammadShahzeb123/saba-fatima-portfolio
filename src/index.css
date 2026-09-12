@@ -1,12 +1,52 @@
-:root {
+:root,
+[data-theme='light'] {
   color-scheme: light;
   --paper: #f4f0e6;
   --ink: #1a1a1a;
   --muted: #5c5346;
+  --accent: #0d9488;
+  --plaque: #fffef8;
+  --plaque-hover: #ffffff;
+  --shadow: rgba(0, 0, 0, 0.12);
+  --border-soft: rgba(26, 26, 26, 0.35);
+  --border-dash: rgba(26, 26, 26, 0.25);
+  --progress-track: rgba(0, 0, 0, 0.06);
+  --fade-center: rgba(244, 240, 230, 0.2);
+  --fade-edge: rgba(244, 240, 230, 0.95);
+  --hint-bg: rgba(255, 254, 248, 0.85);
+  --tooltip-bg: #fffef8;
+  --tooltip-ink: #111;
+  --tooltip-muted: #444;
+  --contact-sign: #f4e4c4;
+  --contact-sign-hot: #ffe08a;
+  --banner-check-bg: #fff;
   --vvh: 1vh;
   font-family: 'Space Grotesk', system-ui, sans-serif;
   background: var(--paper);
   color: var(--ink);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #141820;
+  --ink: #e8e4dc;
+  --muted: #9a958c;
+  --accent: #5b9a8b;
+  --plaque: #1a1f28;
+  --plaque-hover: #222832;
+  --shadow: rgba(0, 0, 0, 0.45);
+  --border-soft: rgba(232, 228, 220, 0.28);
+  --border-dash: rgba(232, 228, 220, 0.2);
+  --progress-track: rgba(232, 228, 220, 0.1);
+  --fade-center: rgba(20, 24, 32, 0.25);
+  --fade-edge: rgba(20, 24, 32, 0.96);
+  --hint-bg: rgba(26, 31, 40, 0.9);
+  --tooltip-bg: #1a1f28;
+  --tooltip-ink: #e8e4dc;
+  --tooltip-muted: #a8a49c;
+  --contact-sign: #3d3428;
+  --contact-sign-hot: #5b4a2e;
+  --banner-check-bg: #222832;
 }
 
 * {
@@ -17,6 +57,7 @@ html, body, #root {
   margin: 0;
   min-height: 100%;
   background: var(--paper);
+  color: var(--ink);
 }
 
 html {
@@ -56,7 +97,7 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at center, rgba(244, 240, 230, 0.2) 0%, rgba(244, 240, 230, 0.95) 70%),
+    radial-gradient(ellipse at center, var(--fade-center) 0%, var(--fade-edge) 70%),
     var(--paper);
   opacity: 0;
   transition: opacity 0.28s ease;
@@ -79,11 +120,11 @@ body {
 
 /* Sketch plaque — thick irregular ink border */
 .ink-plaque {
-  background: #fffef8;
+  background: var(--plaque);
   border: 2.5px solid var(--ink);
   box-shadow:
-    3px 3px 0 rgba(0, 0, 0, 0.12),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+    3px 3px 0 var(--shadow),
+    inset 0 0 0 1px var(--border-dash);
   position: relative;
 }
 
@@ -91,7 +132,7 @@ body {
   content: '';
   position: absolute;
   inset: -4px;
-  border: 1.5px solid rgba(26, 26, 26, 0.35);
+  border: 1.5px solid var(--border-soft);
   clip-path: polygon(
     0% 6%, 4% 0%, 12% 5%, 22% 1%, 35% 7%, 50% 0%, 65% 6%, 78% 1%, 90% 5%, 100% 0%,
     100% 94%, 96% 100%, 85% 95%, 72% 100%, 58% 94%, 45% 100%, 30% 95%, 15% 100%, 0% 94%
@@ -139,14 +180,14 @@ body {
   min-height: 44px;
   display: grid;
   place-items: center;
-  background: #fffef8;
+  background: var(--plaque);
   border: 2.5px solid var(--ink);
   clip-path: polygon(5% 0, 100% 7%, 95% 100%, 0 93%);
   text-decoration: none;
   color: var(--ink);
   font-size: 1.15rem;
   cursor: pointer;
-  box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.14);
+  box-shadow: 2px 3px 0 var(--shadow);
   position: relative;
 }
 
@@ -154,14 +195,19 @@ body {
   content: '';
   position: absolute;
   inset: 3px;
-  border: 1px dashed rgba(26, 26, 26, 0.25);
+  border: 1px dashed var(--border-dash);
   pointer-events: none;
 }
 
 .paper-btn:hover,
 .ink-btn:hover {
   transform: translateY(-1px);
-  background: #fff;
+  background: var(--plaque-hover);
+}
+
+.theme-toggle {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .hud-menu {
@@ -182,9 +228,9 @@ body {
 }
 
 .paper-panel {
-  background: #fffef8;
+  background: var(--plaque);
   border: 2.5px solid var(--ink);
-  box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 3px 4px 0 var(--shadow);
 }
 
 .hud-menu button,
@@ -207,6 +253,7 @@ body {
 .hud-menu a:hover {
   text-decoration: underline;
   text-decoration-style: wavy;
+  color: var(--accent);
 }
 
 .enter-corridor-btn {
@@ -222,9 +269,9 @@ body {
   font-size: 0.9rem;
   padding: 0.7rem 1.15rem;
   min-height: 44px;
-  background: #fffef8;
+  background: var(--plaque);
   border: 2.5px solid var(--ink);
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: 3px 3px 0 var(--shadow);
   clip-path: polygon(2% 0, 100% 6%, 97% 100%, 0 94%);
   cursor: pointer;
   color: var(--ink);
@@ -233,7 +280,8 @@ body {
 }
 
 .enter-corridor-btn:hover {
-  background: #fff;
+  background: var(--plaque-hover);
+  border-color: var(--accent);
 }
 
 /* Torn-paper EXPLORER / WANDERER banner */
@@ -250,11 +298,11 @@ body {
   width: min(440px, calc(100vw - 1.25rem));
   max-width: calc(100vw - 1.25rem);
   pointer-events: none;
-  background: #fffef8;
+  background: var(--plaque);
   border: 2.5px solid var(--ink);
   box-shadow:
-    0 5px 18px rgba(0, 0, 0, 0.1),
-    2px 2px 0 rgba(0, 0, 0, 0.06);
+    0 5px 18px var(--shadow),
+    2px 2px 0 var(--shadow);
   clip-path: polygon(
     0% 10%, 2% 2%, 6% 8%, 11% 0%, 17% 9%, 24% 1%, 32% 10%, 40% 0%,
     48% 8%, 56% 1%, 64% 9%, 72% 0%, 80% 8%, 88% 1%, 94% 9%, 100% 3%,
@@ -267,7 +315,7 @@ body {
   content: '';
   position: absolute;
   inset: 5px;
-  border: 1.5px solid rgba(26, 26, 26, 0.45);
+  border: 1.5px solid var(--border-soft);
   clip-path: inherit;
   pointer-events: none;
   opacity: 0.5;
@@ -281,8 +329,9 @@ body {
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  background: #fff;
-  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
+  background: var(--banner-check-bg);
+  box-shadow: 1px 1px 0 var(--shadow);
+  color: var(--accent);
 }
 
 .banner-copy {
@@ -311,12 +360,12 @@ body {
   right: 0;
   bottom: 0;
   height: 3px;
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--progress-track);
 }
 
 .hud-progress-bar {
   height: 100%;
-  background: var(--ink);
+  background: var(--accent);
   transition: width 0.05s linear;
 }
 
@@ -331,8 +380,8 @@ body {
   font-size: 0.68rem;
   letter-spacing: 0.04em;
   color: var(--muted);
-  background: rgba(255, 254, 248, 0.85);
-  border: 1.5px solid rgba(26, 26, 26, 0.25);
+  background: var(--hint-bg);
+  border: 1.5px solid var(--border-soft);
   padding: 0.25rem 0.55rem;
   opacity: 0.85;
   max-width: calc(100vw - 2rem);
@@ -340,13 +389,13 @@ body {
 }
 
 .project-tooltip {
-  background: #fffef8;
-  border: 2.5px solid #111;
+  background: var(--tooltip-bg);
+  border: 2.5px solid var(--ink);
   padding: 0.65rem 0.8rem;
   clip-path: polygon(2% 0, 100% 3%, 98% 100%, 0 97%);
   font-family: 'Space Grotesk', sans-serif;
-  color: #111;
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.12);
+  color: var(--tooltip-ink);
+  box-shadow: 3px 3px 0 var(--shadow);
   max-width: min(260px, 70vw);
 }
 
@@ -360,23 +409,25 @@ body {
   margin: 0 0 0.4rem;
   font-size: 0.75rem;
   line-height: 1.4;
-  color: #444;
+  color: var(--tooltip-muted);
 }
 
 .project-tooltip span {
   font-size: 0.7rem;
   font-weight: 600;
+  color: var(--accent);
 }
 
 .contact-banner {
   text-align: center;
-  background: #fffef8;
-  border: 2.5px solid #111;
+  background: var(--plaque);
+  border: 2.5px solid var(--ink);
   padding: 0.85rem 1.35rem;
   clip-path: polygon(2% 0, 100% 4%, 98% 100%, 0 96%);
   font-family: 'Space Grotesk', sans-serif;
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 3px 3px 0 var(--shadow);
   max-width: min(320px, 85vw);
+  color: var(--ink);
 }
 
 .contact-banner h2 {
@@ -388,21 +439,23 @@ body {
 .contact-banner p {
   margin: 0.15rem 0;
   font-size: 0.8rem;
-  color: #444;
+  color: var(--muted);
 }
 
 .contact-sign {
   font-weight: 700;
   font-size: 0.75rem;
   letter-spacing: 0.04em;
-  background: #f4e4c4;
-  border: 2.5px solid #111;
+  background: var(--contact-sign);
+  border: 2.5px solid var(--ink);
   padding: 0.4rem 0.5rem;
   font-family: 'Space Grotesk', sans-serif;
+  color: var(--ink);
 }
 
 .contact-sign.hot {
-  background: #ffe08a;
+  background: var(--contact-sign-hot);
+  border-color: var(--accent);
 }
 
 /* Narrow phones ~390px / iPhone SE */
@@ -413,7 +466,7 @@ body {
   }
 
   .hud-brand {
-    max-width: calc(100vw - 7.5rem);
+    max-width: calc(100vw - 9.5rem);
     padding: 0.4rem 0.65rem 0.45rem;
   }
 
@@ -479,7 +532,7 @@ body {
   }
 
   .hud-brand {
-    max-width: calc(100vw - 6.8rem);
+    max-width: calc(100vw - 8.8rem);
   }
 
   .banner-title {

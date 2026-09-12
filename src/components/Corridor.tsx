@@ -11,6 +11,7 @@ import {
 } from '../utils/textures'
 import { NAME, TAGLINE } from '../data/content'
 import { getIsMobile } from '../hooks/useIsMobile'
+import { useTheme } from '../theme/ThemeContext'
 
 const LENGTH = 110
 const WIDTH = 5.5
@@ -45,11 +46,12 @@ const POSTERS: Array<{
 
 export function Corridor() {
   const mobile = useMemo(() => getIsMobile(), [])
-  const plank = useMemo(() => cached('plank', () => plankTexture()), [])
-  const wall = useMemo(() => cached('wall', () => paperWallTexture()), [])
+  const { theme, colors } = useTheme()
+  const plank = useMemo(() => cached(`plank@${theme}`, () => plankTexture(640, 1280, theme)), [theme])
+  const wall = useMemo(() => cached(`wall@${theme}`, () => paperWallTexture(768, 768, theme)), [theme])
   const wordmark = useMemo(
-    () => cached('wordmark', () => wordmarkTexture(NAME.toUpperCase().split(' ')[0], TAGLINE)),
-    [],
+    () => cached(`wordmark@${theme}`, () => wordmarkTexture(NAME.toUpperCase().split(' ')[0], TAGLINE, 1280, 640, theme)),
+    [theme],
   )
 
   const posters = mobile ? POSTERS.filter((_, i) => i % 2 === 0) : POSTERS
@@ -97,7 +99,7 @@ export function Corridor() {
       )}
 
       {posters.map((p) => (
-        <WallPoster key={`${p.title}-${p.z}`} {...p} />
+        <WallPoster key={`${p.title}-${p.z}-${theme}`} {...p} />
       ))}
 
       <DoorLabel text="THE GALLERY" position={[-2.35, 3.35, -18]} />
@@ -147,9 +149,10 @@ function WallPoster({
   z: number
   y: number
 }) {
+  const { theme, colors } = useTheme()
   const tex = useMemo(
-    () => cached(`poster-${title}-${z}`, () => posterTexture(title, doodle, 448, 576)),
-    [title, doodle, z],
+    () => cached(`poster-${title}-${z}@${theme}`, () => posterTexture(title, doodle, 448, 576, theme)),
+    [title, doodle, z, theme],
   )
   const x = side * (WIDTH / 2 - 0.04)
   const rotY = side > 0 ? -Math.PI / 2 : Math.PI / 2
@@ -158,7 +161,7 @@ function WallPoster({
       {/* slight depth backing */}
       <mesh position={[0, 0, -0.02]}>
         <boxGeometry args={[0.92, 1.22, 0.04]} />
-        <meshBasicMaterial color="#e8e2d6" />
+        <meshBasicMaterial color={colors.posterBack} />
       </mesh>
       <mesh>
         <planeGeometry args={[0.88, 1.18]} />
@@ -169,7 +172,8 @@ function WallPoster({
 }
 
 function DoorLabel({ text, position }: { text: string; position: [number, number, number] }) {
-  const tex = useMemo(() => cached(`label-${text}`, () => woodSignTexture(text, 768, 200)), [text])
+  const { theme } = useTheme()
+  const tex = useMemo(() => cached(`label-${text}@${theme}`, () => woodSignTexture(text, 768, 200, theme)), [text, theme])
   const facing = position[0] < 0 ? 1 : position[0] > 0 ? -1 : 0
   return (
     <mesh
@@ -192,6 +196,7 @@ function FloatProp({
   const ref = useRef<THREE.Group>(null)
   const base = useMemo(() => new THREE.Vector3(...position), [position])
   const { camera } = useThree()
+  const { colors } = useTheme()
 
   useFrame(({ clock }) => {
     if (!ref.current) return
@@ -209,25 +214,25 @@ function FloatProp({
       {kind === 'plane' && (
         <mesh rotation={[0.4, 0.5, 0.2]}>
           <planeGeometry args={[0.45, 0.35]} />
-          <meshBasicMaterial color="#f5f0e6" wireframe />
+          <meshBasicMaterial color={colors.wireframePaper} wireframe />
         </mesh>
       )}
       {kind === 'mug' && (
         <mesh>
           <cylinderGeometry args={[0.12, 0.1, 0.22, 8]} />
-          <meshBasicMaterial color="#eee" wireframe />
+          <meshBasicMaterial color={colors.wireframeAlt} wireframe />
         </mesh>
       )}
       {kind === 'pencil' && (
         <mesh rotation={[0.5, 0.2, 1.2]}>
           <cylinderGeometry args={[0.03, 0.03, 0.55, 5]} />
-          <meshBasicMaterial color="#f5d76e" wireframe />
+          <meshBasicMaterial color={colors.accent} wireframe />
         </mesh>
       )}
       {kind === 'ball' && (
         <mesh>
           <icosahedronGeometry args={[0.15, 0]} />
-          <meshBasicMaterial color="#ddd" wireframe />
+          <meshBasicMaterial color={colors.wireframe} wireframe />
         </mesh>
       )}
     </group>

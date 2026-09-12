@@ -1,5 +1,6 @@
-import { Suspense, useMemo } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Suspense, useEffect, useMemo } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
+import * as THREE from 'three'
 import { ScrollCamera } from './ScrollCamera'
 import { Exterior } from './Exterior'
 import { Corridor } from './Corridor'
@@ -8,15 +9,33 @@ import { AboutRoom, ExperienceRoom, SkillsRoom, ContactRoom } from './Rooms'
 import { Character } from './Character'
 import { Doorways } from './Doorways'
 import { getIsMobile } from '../hooks/useIsMobile'
+import { useTheme } from '../theme/ThemeContext'
+import { clearTextureCache } from '../utils/textures'
+
+function ThemeEnvironment() {
+  const { theme, colors } = useTheme()
+  const { scene, gl } = useThree()
+
+  useEffect(() => {
+    const bg = new THREE.Color(colors.fog)
+    scene.background = bg
+    if (scene.fog && scene.fog instanceof THREE.Fog) {
+      scene.fog.color.copy(bg)
+    }
+    gl.setClearColor(bg, 1)
+    clearTextureCache(theme)
+  }, [theme, colors.fog, scene, gl])
+
+  return null
+}
 
 export function Scene({ progress }: { progress: number }) {
   const mobile = useMemo(() => getIsMobile(), [])
-  // Mobile: clamp dpr [1, 1.5] for perf; desktop a bit sharper
+  const { theme, colors } = useTheme()
   const dpr = useMemo(
     () => (mobile ? ([1, 1.5] as [number, number]) : ([1, 1.75] as [number, number])),
     [mobile],
   )
-  // Less washed-out fog — push far plane out, start later
   const fogNear = mobile ? 22 : 26
   const fogFar = mobile ? 70 : 85
 
@@ -33,15 +52,17 @@ export function Scene({ progress }: { progress: number }) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: '#f4f0e6',
+        background: colors.paper,
         touchAction: 'pan-y',
       }}
       onCreated={({ gl }) => {
         gl.domElement.style.touchAction = 'pan-y'
+        gl.setClearColor(new THREE.Color(colors.paper), 1)
       }}
     >
-      <color attach="background" args={['#f4f0e6']} />
-      <fog attach="fog" args={['#f4f0e6', fogNear, fogFar]} />
+      <color attach="background" args={[colors.fog]} />
+      <fog attach="fog" args={[colors.fog, fogNear, fogFar]} />
+      <ThemeEnvironment />
       <ScrollCamera progress={progress} />
       <Suspense fallback={null}>
         <Exterior />
@@ -54,7 +75,7 @@ export function Scene({ progress }: { progress: number }) {
         <SkillsRoom />
         <ContactRoom />
       </Suspense>
-      <ambientLight intensity={1} />
+      <ambientLight intensity={theme === 'dark' ? 0.85 : 1} />
     </Canvas>
   )
 }

@@ -1,23 +1,27 @@
 import { useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+import { useTheme } from '../theme/ThemeContext'
+import { cached } from '../utils/textures'
 
 /** Flat sketched character silhouette in the hub — original, not ITOM art. */
 export function Character() {
   const ref = useRef<THREE.Mesh>(null)
   const { camera } = useThree()
+  const { theme, colors } = useTheme()
 
   const tex = useMemo(() => {
+    return cached(`character@${theme}`, () => {
     const c = document.createElement('canvas')
     c.width = 640
     c.height = 960
     const ctx = c.getContext('2d')!
     ctx.clearRect(0, 0, 640, 960)
-    ctx.strokeStyle = '#1a1a1a'
+    ctx.strokeStyle = colors.ink
     ctx.lineWidth = 3.5
     ctx.lineJoin = 'round'
     ctx.lineCap = 'round'
-    ctx.fillStyle = '#f7f3ea'
+    ctx.fillStyle = colors.characterFill
 
     const ink = (fn: () => void) => {
       fn()
@@ -52,7 +56,7 @@ export function Character() {
     })
 
     // smile + eyes
-    ctx.fillStyle = '#111'
+    ctx.fillStyle = colors.ink
     ctx.beginPath()
     ctx.arc(288, 168, 7, 0, Math.PI * 2)
     ctx.arc(352, 168, 7, 0, Math.PI * 2)
@@ -70,7 +74,7 @@ export function Character() {
     ctx.stroke()
 
     // body
-    ctx.fillStyle = '#f7f3ea'
+    ctx.fillStyle = colors.characterFill
     ink(() => {
       ctx.beginPath()
       ctx.moveTo(235, 275)
@@ -128,7 +132,8 @@ export function Character() {
     const t = new THREE.CanvasTexture(c)
     t.colorSpace = THREE.SRGBColorSpace
     return t
-  }, [])
+    })
+  }, [theme, colors.ink, colors.characterFill])
 
   useFrame(() => {
     if (!ref.current) return

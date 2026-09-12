@@ -3,6 +3,7 @@ import { galleryProjects, portfolio, TAGLINE } from '../data/content'
 import { SECTIONS, bannerForProgress } from '../data/sections'
 import { getScrollMax } from '../hooks/useScrollProgress'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useTheme } from '../theme/ThemeContext'
 
 export function HUD({ progress }: { progress: number }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -10,6 +11,7 @@ export function HUD({ progress }: { progress: number }) {
   const [fade, setFade] = useState(0)
   const [jumping, setJumping] = useState(false)
   const mobile = useIsMobile()
+  const { theme, toggleTheme } = useTheme()
 
   const banner = useMemo(() => {
     const b = bannerForProgress(progress)
@@ -82,6 +84,15 @@ export function HUD({ progress }: { progress: number }) {
           {!mobile && <span className="hud-tag">{TAGLINE}</span>}
         </div>
         <div className="hud-icons">
+          <button
+            type="button"
+            className="paper-btn ink-btn theme-toggle"
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+            onClick={toggleTheme}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
           <button
             type="button"
             className="paper-btn ink-btn"

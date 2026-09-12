@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Html } from '@react-three/drei'
 import { portfolio } from '../data/content'
 import { infoCardTexture, woodSignTexture, cached } from '../utils/textures'
+import { useTheme } from '../theme/ThemeContext'
 
 export function AboutRoom() {
   const { about, education, profile } = portfolio
@@ -20,7 +21,8 @@ export function AboutRoom() {
     ],
     [about, education],
   )
-  const tex = useMemo(() => cached('about-card', () => infoCardTexture(lines, 640, 800, '#4F46E5')), [lines])
+  const { theme, colors } = useTheme()
+  const tex = useMemo(() => cached(`about-card@${theme}`, () => infoCardTexture(lines, 640, 800, '#4F46E5', theme)), [lines, theme])
   const avatar = useMemo(() => {
     // simple sketched avatar placeholder plane using photo
     return null
@@ -35,7 +37,7 @@ export function AboutRoom() {
       {/* Avatar on opposite alcove */}
       <mesh position={[-4.8, 0.2, 0]} rotation={[0, Math.PI / 2, 0]}>
         <planeGeometry args={[1.2, 1.2]} />
-        <meshBasicMaterial color="#f0ebe3" />
+        <meshBasicMaterial color={colors.avatarBack} />
       </mesh>
       <Html position={[-4.8, 0.2, 0]} transform rotation={[0, Math.PI / 2, 0]} distanceFactor={4}>
         <img
@@ -46,7 +48,7 @@ export function AboutRoom() {
             height: 120,
             objectFit: 'cover',
             borderRadius: 8,
-            border: '3px solid #222',
+            border: '3px solid var(--ink)',
             filter: 'grayscale(0.3) contrast(1.05)',
           }}
         />
@@ -67,7 +69,8 @@ export function ExperienceRoom() {
     }
     return out
   }, [])
-  const tex = useMemo(() => cached('exp-card', () => infoCardTexture(lines, 640, 820, '#0891B2')), [lines])
+  const { theme } = useTheme()
+  const tex = useMemo(() => cached(`exp-card@${theme}`, () => infoCardTexture(lines, 640, 820, '#0891B2', theme)), [lines, theme])
   return (
     <group position={[-2.4, 1.6, -68]}>
       <mesh rotation={[0, Math.PI / 2, 0]}>
@@ -88,7 +91,8 @@ export function SkillsRoom() {
     }
     return out
   }, [skills])
-  const tex = useMemo(() => cached('skills-card', () => infoCardTexture(lines, 640, 760, '#059669')), [lines])
+  const { theme } = useTheme()
+  const tex = useMemo(() => cached(`skills-card@${theme}`, () => infoCardTexture(lines, 640, 760, '#059669', theme)), [lines, theme])
   return (
     <group position={[2.4, 1.6, -78]}>
       <mesh rotation={[0, -Math.PI / 2, 0]}>
@@ -104,7 +108,8 @@ export function SkillsRoom() {
 }
 
 function SkillBadge({ label, index }: { label: string; index: number }) {
-  const tex = useMemo(() => cached(`skill-${label}`, () => woodSignTexture(label, 320, 110)), [label])
+  const { theme } = useTheme()
+  const tex = useMemo(() => cached(`skill-${label}@${theme}`, () => woodSignTexture(label, 320, 110, theme)), [label, theme])
   const angle = (index / 8) * Math.PI * 2
   const x = Math.cos(angle) * 0.9
   const y = Math.sin(angle) * 0.7
@@ -119,6 +124,7 @@ function SkillBadge({ label, index }: { label: string; index: number }) {
 export function ContactRoom() {
   const { contact, profile } = portfolio
   const [hovered, setHovered] = useState<string | null>(null)
+  const { colors } = useTheme()
   const links = [
     { id: 'github', label: 'GITHUB', url: contact.github },
     { id: 'linkedin', label: 'LINKEDIN', url: contact.linkedin },
@@ -132,7 +138,7 @@ export function ContactRoom() {
       {/* Pier floor extension */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, -2]}>
         <planeGeometry args={[4, 8]} />
-        <meshBasicMaterial color="#d4c4a8" />
+        <meshBasicMaterial color={colors.pier} />
       </mesh>
 
       {/* End wall message */}
@@ -160,7 +166,7 @@ export function ContactRoom() {
               onClick={() => window.open(link.url, '_blank', 'noopener,noreferrer')}
             >
               <boxGeometry args={[0.75, 0.9, 0.12]} />
-              <meshBasicMaterial color={hovered === link.id ? '#c4a574' : '#a68b5b'} />
+              <meshBasicMaterial color={hovered === link.id ? colors.accent : colors.signBoard} />
             </mesh>
             <Html position={[0, 0, 0.1]} center distanceFactor={6}>
               <div className={`contact-sign ${hovered === link.id ? 'hot' : ''}`}>{link.label}</div>

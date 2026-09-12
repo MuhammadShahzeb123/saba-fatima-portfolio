@@ -3,6 +3,7 @@ import { Html } from '@react-three/drei'
 import { galleryProjects, type GalleryProject } from '../data/content'
 import { projectFrameTexture, cached } from '../utils/textures'
 import { PaintRevealMaterial } from '../shaders/PaintRevealMaterial'
+import { useTheme } from '../theme/ThemeContext'
 
 const START_Z = -16
 const SPACING = 1.85
@@ -37,19 +38,20 @@ function ProjectFrame({
   side: number
 }) {
   const [hovered, setHovered] = useState(false)
+  const { theme, colors } = useTheme()
   const sketch = useMemo(
     () =>
-      cached(`proj-s-${project.id}`, () =>
-        projectFrameTexture(project.title, project.language || 'Project', project.color, false),
+      cached(`proj-s-${project.id}@${theme}`, () =>
+        projectFrameTexture(project.title, project.language || 'Project', project.color, false, 640, 480, theme),
       ),
-    [project],
+    [project, theme],
   )
   const color = useMemo(
     () =>
-      cached(`proj-c-${project.id}`, () =>
-        projectFrameTexture(project.title, project.language || 'Project', project.color, true),
+      cached(`proj-c-${project.id}@${theme}`, () =>
+        projectFrameTexture(project.title, project.language || 'Project', project.color, true, 640, 480, theme),
       ),
-    [project],
+    [project, theme],
   )
 
   return (
@@ -77,7 +79,7 @@ function ProjectFrame({
       {/* Arrow cue */}
       <mesh position={[0, -1.0, 0.02]}>
         <planeGeometry args={[0.35, 0.2]} />
-        <meshBasicMaterial color="#222" />
+        <meshBasicMaterial color={colors.ink} />
       </mesh>
 
       {hovered && (

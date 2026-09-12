@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { woodSignTexture, doorTexture, cached } from '../utils/textures'
+import { useTheme } from '../theme/ThemeContext'
 
 /** Decorative corridor door frames for section cues — boxes for depth. */
 export function Doorways() {
@@ -30,18 +31,19 @@ function Door({
   z: number
   side: -1 | 1 | 0
 }) {
+  const { theme, colors } = useTheme()
   const sign = useMemo(
-    () => cached(`door-sign-${label}`, () => woodSignTexture(label, 768, 200)),
-    [label],
+    () => cached(`door-sign-${label}@${theme}`, () => woodSignTexture(label, 768, 200, theme)),
+    [label, theme],
   )
-  const door = useMemo(() => cached('inner-door', () => doorTexture(384, 640, false)), [])
+  const door = useMemo(() => cached(`inner-door@${theme}`, () => doorTexture(384, 640, false, theme)), [theme])
 
   if (side === 0) {
     return (
       <group position={[0, 0, z]}>
         <mesh position={[0, 3.2, 0]}>
           <boxGeometry args={[2.9, 0.7, 0.08]} />
-          <meshBasicMaterial color="#b8895a" />
+          <meshBasicMaterial color={colors.signBoard} />
         </mesh>
         <mesh position={[0, 3.2, 0.05]}>
           <planeGeometry args={[2.8, 0.65]} />
@@ -59,11 +61,11 @@ function Door({
       {/* Deep frame */}
       <mesh rotation={[0, rotY, 0]} position={[side * 0.06, 1.4, 0]}>
         <boxGeometry args={[1.55, 2.75, 0.18]} />
-        <meshBasicMaterial color="#4a3424" />
+        <meshBasicMaterial color={colors.doorFrame} />
       </mesh>
       <lineSegments rotation={[0, rotY, 0]} position={[side * 0.06, 1.4, 0]}>
         <edgesGeometry args={[new THREE.BoxGeometry(1.55, 2.75, 0.18)]} />
-        <lineBasicMaterial color="#111" />
+        <lineBasicMaterial color={colors.ink} />
       </lineSegments>
       <mesh rotation={[0, rotY, 0]} position={[0, 1.4, 0]}>
         <planeGeometry args={[1.35, 2.55]} />
@@ -71,7 +73,7 @@ function Door({
       </mesh>
       <mesh rotation={[0, rotY, 0]} position={[0, 3.05, 0]}>
         <boxGeometry args={[1.95, 0.55, 0.08]} />
-        <meshBasicMaterial color="#b8895a" />
+        <meshBasicMaterial color={colors.signBoard} />
       </mesh>
       <mesh rotation={[0, rotY, 0]} position={[0, 3.05, 0.05]}>
         <planeGeometry args={[1.9, 0.52]} />
@@ -79,7 +81,7 @@ function Door({
       </mesh>
       <mesh rotation={[0, rotY, 0]} position={[side * 0.02, 2.4, 0.55]}>
         <planeGeometry args={[0.22, 0.09]} />
-        <meshBasicMaterial color="#38bdf8" />
+        <meshBasicMaterial color={colors.accentDoor} />
       </mesh>
     </group>
   )
